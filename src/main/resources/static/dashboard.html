@@ -471,6 +471,17 @@
 
       document.getElementById("sign-out").addEventListener("click", signOutFromDashboard);
       document.getElementById("footer-sign-out").addEventListener("click", signOutFromDashboard);
+
+      document.querySelector(".dashboard-action-arena").addEventListener("click", () => {
+        if (!window.matchMedia("(pointer: coarse)").matches) return;
+
+        const orientation = window.screen.orientation;
+        if (typeof orientation?.lock !== "function") return;
+
+        orientation.lock("landscape").catch(() => {
+          status.textContent = "Landscape mode could not be enabled automatically. Rotate your device to landscape.";
+        });
+      });
     </script>
   </body>
 </html>

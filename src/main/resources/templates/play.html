@@ -1,0 +1,1407 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#08120f" />
+    <title>Godfall Arena | World</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, "Segoe UI", system-ui, sans-serif;
+        --gold: #efbd62;
+        --cyan: #9ce8e7;
+      }
+
+      * { box-sizing: border-box; }
+
+      body { min-width: 320px; min-height: 100vh; margin: 0; overflow: hidden; background: #102b27; color: #f5f2e8; }
+      button, a { -webkit-tap-highlight-color: transparent; }
+      .game-shell { position: fixed; inset: 0; overflow: hidden; background: #102b27; }
+      .game-shell:fullscreen { width: 100%; height: 100%; background: #102b27; }
+      #world-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+      #avatar-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+      .game-hud { position: absolute; inset: 0 0 auto; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: max(14px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left)); pointer-events: none; }
+      .player-panel, .hud-actions { display: flex; align-items: center; gap: 10px; }
+      .player-panel { min-width: 0; padding: 9px 13px; border: 1px solid rgba(239, 189, 98, 0.3); border-radius: 6px; background: rgba(5, 13, 15, 0.82); box-shadow: 0 8px 26px rgba(0, 0, 0, 0.28); }
+      .player-mark { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border: 1px solid rgba(239, 189, 98, 0.45); border-radius: 50%; color: var(--gold); font-size: 0.72rem; font-weight: 900; }
+      .player-copy { min-width: 0; }
+      .player-name { overflow: hidden; max-width: 38vw; color: #fff7e6; font-size: 0.77rem; font-weight: 850; text-overflow: ellipsis; white-space: nowrap; }
+      .player-class { margin-top: 3px; color: #b6c5bd; font-size: 0.57rem; letter-spacing: 0.11em; text-transform: uppercase; }
+      .player-level { margin-left: 7px; color: var(--gold); font-size: 0.54rem; font-weight: 800; letter-spacing: 0.08em; }
+      .vital-bars { display: grid; gap: 4px; margin-top: 7px; }
+      .vital-bar { height: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; background: rgba(0,0,0,0.6); }
+      .vital-bar span { width: 100%; height: 100%; display: block; background: linear-gradient(90deg, #a8323c, #ed6670); }
+      .vital-bar.energy span { background: linear-gradient(90deg, #186392, #52c1e0); }
+      .online-count { padding: 9px 12px; border: 1px solid rgba(156, 232, 231, 0.24); border-radius: 999px; background: rgba(5, 13, 15, 0.78); color: #c9f8e9; font-size: 0.64rem; font-weight: 750; white-space: nowrap; }
+      .hud-actions { pointer-events: auto; }
+      .hud-button { min-height: 38px; display: inline-flex; align-items: center; justify-content: center; padding: 0 12px; border: 1px solid rgba(156, 232, 231, 0.27); border-radius: 5px; background: rgba(5, 13, 15, 0.84); color: #e2ffff; cursor: pointer; font: inherit; font-size: 0.58rem; font-weight: 800; letter-spacing: 0.07em; text-decoration: none; text-transform: uppercase; }
+      .hud-button:hover { border-color: var(--cyan); background: rgba(19, 51, 47, 0.94); }
+      .game-panel { border: 1px solid rgba(187, 205, 194, 0.36); border-radius: 5px; background: linear-gradient(145deg, rgba(10, 21, 22, 0.95), rgba(7, 13, 17, 0.9)); box-shadow: 0 12px 35px rgba(0,0,0,0.4), inset 0 1px rgba(255,255,255,0.06); }
+      .panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 11px; border-bottom: 1px solid rgba(156, 232, 231, 0.15); color: #e8dfc7; font-size: 0.59rem; font-weight: 850; letter-spacing: 0.12em; text-transform: uppercase; }
+      .panel-close { width: 24px; height: 24px; border: 1px solid rgba(255,255,255,0.18); border-radius: 4px; background: rgba(255,255,255,0.04); color: #dce5df; cursor: pointer; }
+      .character-status-panel { position: absolute; bottom: max(86px, calc(env(safe-area-inset-bottom) + 82px)); left: max(16px, env(safe-area-inset-left)); width: min(310px, 30vw); overflow: hidden; }
+      .character-sheet { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 10px; padding: 12px; }
+      .character-portrait { width: 58px; height: 72px; display: grid; place-items: center; border: 1px solid rgba(239, 189, 98, 0.4); border-radius: 4px; background: radial-gradient(circle at 50% 35%, rgba(239, 189, 98, 0.28), transparent 62%), linear-gradient(145deg, #24453e, #111b20); color: #ffe6b0; font-size: 1.35rem; font-weight: 900; }
+      .sheet-name { overflow: hidden; color: #fff4d8; font-size: 0.73rem; font-weight: 850; text-overflow: ellipsis; white-space: nowrap; }
+      .sheet-class { margin-top: 4px; color: #a9beb2; font-size: 0.56rem; letter-spacing: 0.08em; text-transform: uppercase; }
+      .sheet-detail { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; color: #93a59d; font-size: 0.56rem; }
+      .sheet-detail strong { color: #e4e9dc; font-weight: 700; }
+      .minimap-panel { position: absolute; top: max(68px, calc(env(safe-area-inset-top) + 60px)); right: max(16px, env(safe-area-inset-right)); width: 205px; overflow: hidden; }
+      .minimap-canvas { width: 100%; height: 126px; display: block; background: #193b35; }
+      .minimap-footer { display: flex; justify-content: space-between; gap: 8px; padding: 7px 9px; color: #b9c9bd; font-size: 0.54rem; }
+      .inventory-panel { position: absolute; top: max(214px, calc(env(safe-area-inset-top) + 204px)); right: max(16px, env(safe-area-inset-right)); width: min(280px, 30vw); max-height: calc(100vh - 300px); overflow: auto; }
+      .inventory-tabs { display: flex; gap: 5px; padding: 9px 10px 0; }
+      .inventory-tab { flex: 1; min-height: 27px; border: 1px solid rgba(156, 232, 231, 0.17); border-radius: 3px; background: rgba(255,255,255,0.035); color: #aab9b2; font: inherit; font-size: 0.52rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+      .inventory-tab[aria-selected="true"] { border-color: rgba(239, 189, 98, 0.5); background: rgba(239, 189, 98, 0.12); color: #ffe0a2; }
+      .equipment-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 10px; }
+      .equipment-slot, .inventory-slot { display: grid; place-items: center; border: 1px solid rgba(178, 200, 190, 0.22); border-radius: 4px; background: linear-gradient(145deg, rgba(37, 53, 49, 0.88), rgba(9, 17, 19, 0.9)); color: rgba(219, 222, 201, 0.5); }
+      .equipment-slot { min-height: 46px; font-size: 0.54rem; text-align: center; }
+      .inventory-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; padding: 0 10px 10px; }
+      .inventory-slot { aspect-ratio: 1; font-size: 0.76rem; }
+      .inventory-note { margin: 0; padding: 0 10px 10px; color: #8d9d95; font-size: 0.54rem; line-height: 1.5; }
+      .action-bar { position: absolute; bottom: max(14px, env(safe-area-inset-bottom)); left: 50%; display: flex; gap: 5px; padding: 6px; border: 1px solid rgba(205, 215, 198, 0.35); border-radius: 6px; background: rgba(7, 14, 17, 0.88); box-shadow: 0 8px 26px rgba(0,0,0,0.4); transform: translateX(-50%); }
+      .action-slot { position: relative; width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid rgba(204, 218, 202, 0.24); border-radius: 4px; background: radial-gradient(circle at 45% 35%, rgba(156, 232, 231, 0.15), rgba(10, 21, 23, 0.94)); color: rgba(232, 238, 222, 0.55); font-size: 0.9rem; }
+      .action-slot span { position: absolute; right: 3px; bottom: 2px; color: #c5c6b8; font-size: 0.48rem; }
+      .game-shell[data-inventory-open="false"] .inventory-panel, .game-shell[data-character-open="false"] .character-status-panel { display: none; }
+      .game-shell[data-inventory-open="true"] #inventory-toggle, .game-shell[data-character-open="true"] #character-toggle { border-color: var(--gold); color: #ffe6b0; }
+      .world-status { position: absolute; top: max(80px, calc(env(safe-area-inset-top) + 70px)); left: 50%; max-width: min(90vw, 600px); padding: 8px 12px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 5px; background: rgba(5, 13, 15, 0.76); color: #d3ded5; font-size: 0.65rem; line-height: 1.45; text-align: center; transform: translateX(-50%); pointer-events: none; }
+      .world-status[data-state="error"] { border-color: rgba(255, 140, 151, 0.42); color: #ffd2d4; }
+      .location-label { position: absolute; right: max(16px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); padding: 8px 12px; border: 1px solid rgba(239, 189, 98, 0.24); border-radius: 4px; background: rgba(5, 13, 15, 0.7); color: #ead9b4; font-size: 0.58rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; pointer-events: none; }
+      .controls { position: absolute; bottom: max(24px, env(safe-area-inset-bottom)); left: max(22px, env(safe-area-inset-left)); width: 124px; height: 124px; display: none; place-items: center; border: 1px solid rgba(219, 239, 222, 0.28); border-radius: 50%; background: radial-gradient(circle, rgba(42, 69, 61, 0.66), rgba(8, 20, 20, 0.48) 72%); box-shadow: inset 0 0 24px rgba(0,0,0,0.28), 0 8px 26px rgba(0,0,0,0.22); touch-action: none; user-select: none; }
+      .controls::before { position: absolute; inset: 14px; border: 1px solid rgba(205, 225, 209, 0.16); border-radius: 50%; content: ""; pointer-events: none; }
+      .joystick-thumb { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; border: 1px solid rgba(255, 230, 172, 0.76); border-radius: 50%; background: radial-gradient(circle at 35% 30%, rgba(239, 189, 98, 0.94), rgba(125, 78, 35, 0.88)); box-shadow: 0 4px 14px rgba(0,0,0,0.45), inset 0 1px rgba(255,255,255,0.45); transform: translate(-50%, -50%); transition: box-shadow 120ms ease; pointer-events: none; }
+      .controls[data-active="true"] .joystick-thumb { box-shadow: 0 0 20px rgba(239, 189, 98, 0.48), inset 0 1px rgba(255,255,255,0.45); }
+      .loading-panel { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(5, 12, 14, 0.9); text-align: center; }
+      .loading-panel[hidden] { display: none; }
+      .loading-card { max-width: 420px; padding: 26px; border: 1px solid rgba(239, 189, 98, 0.3); border-radius: 8px; background: rgba(15, 27, 26, 0.96); box-shadow: 0 20px 70px rgba(0, 0, 0, 0.45); }
+      .loading-card h1 { margin: 0 0 10px; color: #fff4d8; font-size: 1.1rem; }
+      .loading-card p { margin: 0; color: #bdc9c1; font-size: 0.78rem; line-height: 1.65; }
+      .loading-card a { display: inline-flex; min-height: 38px; align-items: center; margin-top: 16px; padding: 0 13px; border: 1px solid rgba(239, 189, 98, 0.5); border-radius: 4px; color: #ffe4ae; font-size: 0.65rem; font-weight: 800; text-decoration: none; text-transform: uppercase; }
+      .keyboard-hint { position: absolute; bottom: max(20px, env(safe-area-inset-bottom)); left: 50%; padding: 8px 12px; border-radius: 4px; background: rgba(5, 13, 15, 0.68); color: #d1d9d2; font-size: 0.6rem; letter-spacing: 0.04em; transform: translateX(-50%); pointer-events: none; white-space: nowrap; }
+
+      @media (pointer: coarse) {
+        .controls { display: grid; }
+        .keyboard-hint { display: none; }
+      }
+
+      @media (max-width: 560px) {
+        .game-hud { flex-wrap: wrap; }
+        .player-panel { max-width: calc(100vw - 32px); padding: 7px 9px; }
+        .player-name { max-width: 29vw; }
+        .online-count { padding: 7px 8px; font-size: 0.53rem; }
+        .hud-actions { gap: 6px; }
+        .hud-button { min-height: 34px; padding: 0 8px; font-size: 0.49rem; }
+        .minimap-panel { top: max(112px, calc(env(safe-area-inset-top) + 104px)); right: 10px; width: 148px; }
+        .minimap-canvas { height: 88px; }
+        .inventory-panel { top: max(210px, calc(env(safe-area-inset-top) + 200px)); right: 10px; width: min(230px, 61vw); max-height: calc(100vh - 240px); }
+        .character-status-panel { bottom: 87px; left: 10px; width: min(220px, 54vw); }
+        .character-sheet { grid-template-columns: 42px minmax(0, 1fr); gap: 7px; padding: 8px; }
+        .character-portrait { width: 42px; height: 54px; font-size: 1rem; }
+        .action-bar { bottom: max(10px, env(safe-area-inset-bottom)); gap: 3px; padding: 4px; }
+        .action-slot { width: 34px; height: 36px; }
+        .controls { bottom: max(18px, env(safe-area-inset-bottom)); left: max(14px, env(safe-area-inset-left)); width: 108px; height: 108px; }
+        .joystick-thumb { width: 42px; height: 42px; }
+        .world-status { top: max(70px, calc(env(safe-area-inset-top) + 64px)); max-width: 44vw; left: 50%; font-size: 0.52rem; }
+        .location-label { right: 10px; bottom: 115px; max-width: 42vw; font-size: 0.5rem; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="game-shell">
+      <canvas id="world-canvas" aria-label="Top-down world. Move with WASD or the arrow keys, or use the touch joystick."></canvas>
+      <canvas id="avatar-canvas" aria-hidden="true"></canvas>
+
+      <header class="game-hud">
+        <div class="player-panel">
+          <span class="player-mark" id="player-mark" aria-hidden="true">?</span>
+          <div class="player-copy">
+            <div><span class="player-name" id="player-name">Loading champion...</span><span class="player-level">LV 1</span></div>
+            <div class="player-class" id="player-class">Connecting</div>
+            <div class="vital-bars" aria-label="Prototype health and energy">
+              <div class="vital-bar"><span></span></div>
+              <div class="vital-bar energy"><span></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="online-count" id="online-count" role="status" aria-live="polite">Connecting to world...</div>
+        <nav class="hud-actions" aria-label="World actions">
+          <button class="hud-button" id="character-toggle" type="button" aria-controls="character-panel" aria-expanded="true">Character</button>
+          <button class="hud-button" id="inventory-toggle" type="button" aria-controls="inventory-panel" aria-expanded="true">Inventory</button>
+          <button class="hud-button" id="fullscreen-button" type="button">Fullscreen</button>
+          <a class="hud-button" id="roster-link" href="/characters">Characters</a>
+        </nav>
+      </header>
+
+      <p class="world-status" id="world-status" role="status" aria-live="polite">Loading your selected champion...</p>
+      <div class="location-label" id="location-label">The Verdant Reach</div>
+      <div class="keyboard-hint">Move: WASD or arrow keys</div>
+
+      <aside class="game-panel minimap-panel" aria-label="Realm map">
+        <div class="panel-heading"><span>Realm map</span><span aria-hidden="true">N</span></div>
+        <canvas class="minimap-canvas" id="minimap-canvas" width="210" height="126" aria-label="Map showing your location and nearby players"></canvas>
+        <div class="minimap-footer"><span id="minimap-location">Verdant Reach</span><span id="minimap-coordinates">1600, 1200</span></div>
+      </aside>
+
+      <aside class="game-panel character-status-panel" id="character-panel" aria-label="Champion details">
+        <div class="panel-heading">
+          <span>Champion</span>
+          <button class="panel-close" type="button" data-close-panel="characterOpen" aria-label="Close character panel">×</button>
+        </div>
+        <div class="character-sheet">
+          <div class="character-portrait" id="sheet-avatar" aria-hidden="true">?</div>
+          <div>
+            <div class="sheet-name" id="sheet-name">Loading champion...</div>
+            <div class="sheet-class" id="sheet-class">Connecting</div>
+            <div class="sheet-detail"><span>Lineage</span><strong id="sheet-lineage">—</strong></div>
+            <div class="sheet-detail"><span>Realm</span><strong id="sheet-realm">—</strong></div>
+          </div>
+        </div>
+      </aside>
+
+      <aside class="game-panel inventory-panel" id="inventory-panel" aria-label="Equipment and inventory">
+        <div class="panel-heading">
+          <span>Adventurer gear</span>
+          <button class="panel-close" type="button" data-close-panel="inventoryOpen" aria-label="Close inventory panel">×</button>
+        </div>
+        <div class="inventory-tabs" role="tablist" aria-label="Gear views">
+          <button class="inventory-tab" type="button" role="tab" aria-selected="true" data-inventory-tab="bag">Inventory</button>
+          <button class="inventory-tab" type="button" role="tab" aria-selected="false" data-inventory-tab="gear">Equipment</button>
+        </div>
+        <section class="inventory-view" data-inventory-view="bag" role="tabpanel">
+          <div class="inventory-grid" id="inventory-grid" aria-label="Empty inventory slots"></div>
+          <p class="inventory-note">Inventory items are not available in this prototype yet.</p>
+        </section>
+        <section class="inventory-view" data-inventory-view="gear" role="tabpanel" hidden>
+          <div class="equipment-grid" id="equipment-grid" aria-label="Equipment slots"></div>
+          <p class="inventory-note">Equipment is not available in this prototype yet.</p>
+        </section>
+      </aside>
+
+      <div class="action-bar" role="toolbar" aria-label="Prototype ability slots">
+        <div class="action-slot" aria-label="Ability slot 1 unavailable">◇<span>1</span></div>
+        <div class="action-slot" aria-label="Ability slot 2 unavailable">◇<span>2</span></div>
+        <div class="action-slot" aria-label="Ability slot 3 unavailable">◇<span>3</span></div>
+        <div class="action-slot" aria-label="Ability slot 4 unavailable">◇<span>4</span></div>
+        <div class="action-slot" aria-label="Ability slot 5 unavailable">◇<span>5</span></div>
+        <div class="action-slot" aria-label="Ability slot 6 unavailable">◇<span>6</span></div>
+      </div>
+
+      <div class="controls" id="virtual-joystick" role="group" aria-label="Touch joystick for movement">
+        <div class="joystick-thumb" id="joystick-thumb"></div>
+      </div>
+
+      <section class="loading-panel" id="loading-panel" aria-live="polite">
+        <div class="loading-card">
+          <h1 id="loading-title">Entering the Verdant Reach</h1>
+          <p id="loading-message">Loading your selected champion and connecting to the realm...</p>
+          <a href="/characters">Return to characters</a>
+        </div>
+      </section>
+    </main>
+
+    <script src="/firebase-config.js"></script>
+    <script type="module">
+      import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        reload,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+      import {
+        getDatabase,
+        onDisconnect,
+        onValue,
+        remove,
+        ref,
+        serverTimestamp,
+        set,
+        update,
+      } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+
+      const app = initializeApp(window.FIREBASE_CONFIG);
+      const auth = getAuth(app);
+      const database = getDatabase(app);
+      const canvas = document.getElementById("world-canvas");
+      const context = canvas.getContext("2d");
+      const avatarCanvas = document.getElementById("avatar-canvas");
+      const minimapCanvas = document.getElementById("minimap-canvas");
+      const minimapContext = minimapCanvas.getContext("2d");
+      const status = document.getElementById("world-status");
+      const onlineCount = document.getElementById("online-count");
+      const loadingPanel = document.getElementById("loading-panel");
+      const loadingTitle = document.getElementById("loading-title");
+      const loadingMessage = document.getElementById("loading-message");
+      const rosterLink = document.getElementById("roster-link");
+      const fullscreenButton = document.getElementById("fullscreen-button");
+      const gameShell = document.querySelector(".game-shell");
+      const inventoryToggle = document.getElementById("inventory-toggle");
+      const characterToggle = document.getElementById("character-toggle");
+      const requestedCharacterId = new URLSearchParams(window.location.search).get("characterId");
+      const classLabels = {
+        vanguard: "Vanguard",
+        striker: "Striker",
+        arcanist: "Arcanist",
+        warden: "Warden",
+      };
+      const classColors = {
+        vanguard: "#efbd62",
+        striker: "#f08c62",
+        arcanist: "#bca3ee",
+        warden: "#8fd4aa",
+      };
+      const hairColors = {
+        silver: "#dce8f4",
+        gold: "#f1bd58",
+        ember: "#e76d50",
+        violet: "#a98ae8",
+      };
+      const world = { width: 3200, height: 2400 };
+      const tabSessionId = typeof window.crypto.randomUUID === "function"
+        ? window.crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const localPlayer = {
+        x: 1600,
+        y: 1200,
+        targetX: 1600,
+        targetY: 1200,
+        name: "",
+        classType: "",
+        lineage: "",
+        bodyType: "",
+        hairStyle: "",
+        hairColor: "",
+        faceStyle: "",
+        moving: false,
+        facingX: 0,
+        facingY: -1,
+      };
+      const remotePlayers = new Map();
+      const heldDirections = new Set();
+      const joystickVector = { x: 0, y: 0 };
+      const virtualJoystick = document.getElementById("virtual-joystick");
+      const joystickThumb = document.getElementById("joystick-thumb");
+      let currentUser = null;
+      let selectedCharacter = null;
+      let playerReference = null;
+      let characterLocationReference = null;
+      let canWritePresence = false;
+      let canSaveLocation = true;
+      let writePending = false;
+      let locationWritePending = false;
+      let lastPositionWrite = 0;
+      let lastPresenceHeartbeat = 0;
+      let lastLocationWrite = 0;
+      let savedLocation = null;
+      let sessionMonitorId = null;
+      let lastFrameTime = 0;
+      let worldStarted = false;
+      let snapRemotePlayersOnNextUpdate = false;
+      let mobileLandscapePending = false;
+      let currentStatusMessage = "";
+      let avatarRenderer = null;
+      let avatarScene = null;
+      let avatarCamera = null;
+      let avatarRendererError = null;
+      const avatarModels = new Map();
+
+      const mobileControls = window.matchMedia("(pointer: coarse)").matches;
+      const compactLayout = window.matchMedia("(max-width: 700px)").matches;
+      gameShell.dataset.inventoryOpen = String(!compactLayout);
+      gameShell.dataset.characterOpen = String(!compactLayout);
+      inventoryToggle.setAttribute("aria-expanded", String(!compactLayout));
+      characterToggle.setAttribute("aria-expanded", String(!compactLayout));
+
+      function setStatus(message, isError = false) {
+        currentStatusMessage = message;
+        const avatarNotice = avatarRendererError ? " 3D avatars unavailable; using the classic view." : "";
+        const landscapeNotice = mobileLandscapePending
+          ? " Tap Fullscreen for landscape mode; rotate your phone if the browser blocks it."
+          : "";
+        status.textContent = `${message}${avatarNotice}${landscapeNotice}`;
+        status.dataset.state = isError ? "error" : "ready";
+      }
+
+      async function enterFullscreenAndLockLandscape() {
+        if (!document.fullscreenElement) {
+          if (typeof gameShell.requestFullscreen !== "function") {
+            throw new Error("Fullscreen is not supported by this browser.");
+          }
+          await gameShell.requestFullscreen();
+        }
+        if (mobileControls) {
+          const orientation = window.screen.orientation;
+          if (typeof orientation?.lock !== "function") {
+            throw new Error("Rotate your phone to landscape if orientation lock is unavailable.");
+          }
+          await orientation.lock("landscape");
+        }
+        mobileLandscapePending = false;
+        setStatus(currentStatusMessage);
+      }
+
+      function initializeAvatarRenderer() {
+        try {
+          avatarRenderer = new THREE.WebGLRenderer({
+            canvas: avatarCanvas,
+            alpha: true,
+            antialias: true,
+            powerPreference: "low-power",
+          });
+          avatarRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          avatarRenderer.setClearColor(0x000000, 0);
+          avatarScene = new THREE.Scene();
+          avatarScene.add(new THREE.HemisphereLight(0xffecd0, 0x263b45, 2.2));
+
+          const keyLight = new THREE.DirectionalLight(0xffe3b4, 2.4);
+          keyLight.position.set(-80, 110, 150);
+          avatarScene.add(keyLight);
+
+          const fillLight = new THREE.DirectionalLight(0x9ce8e7, 1.1);
+          fillLight.position.set(90, 15, 100);
+          avatarScene.add(fillLight);
+
+          avatarCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 2000);
+          avatarCamera.position.set(0, 0, 1000);
+          avatarCamera.lookAt(0, 0, 0);
+        } catch (error) {
+          avatarRendererError = error;
+          console.error("Could not initialize 3D character rendering.", error);
+        }
+      }
+
+      initializeAvatarRenderer();
+
+      function multiplayerFailureMessage(error) {
+        const detail = error && typeof error.message === "string" ? error.message : "";
+        if (/permission[_ ]denied|permission denied/i.test(detail)) {
+          return "Firebase denied live presence. Publish the latest database.rules.json, then rejoin this realm.";
+        }
+        return `Live multiplayer unavailable: ${detail || "Check your connection and Firebase settings."}`;
+      }
+
+      function setPanelOpen(panelName, isOpen) {
+        gameShell.dataset[panelName] = String(isOpen);
+        const toggle = panelName === "inventoryOpen" ? inventoryToggle : characterToggle;
+        toggle.setAttribute("aria-expanded", String(isOpen));
+      }
+
+      inventoryToggle.addEventListener("click", () => {
+        setPanelOpen("inventoryOpen", gameShell.dataset.inventoryOpen !== "true");
+      });
+      characterToggle.addEventListener("click", () => {
+        setPanelOpen("characterOpen", gameShell.dataset.characterOpen !== "true");
+      });
+      document.querySelectorAll("[data-close-panel]").forEach((button) => {
+        button.addEventListener("click", () => setPanelOpen(button.dataset.closePanel, false));
+      });
+
+      document.querySelectorAll(".inventory-tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          document.querySelectorAll(".inventory-tab").forEach((entry) => {
+            entry.setAttribute("aria-selected", String(entry === tab));
+          });
+          document.querySelectorAll(".inventory-view").forEach((view) => {
+            view.hidden = view.dataset.inventoryView !== tab.dataset.inventoryTab;
+          });
+        });
+      });
+
+      for (let slot = 0; slot < 20; slot += 1) {
+        const cell = document.createElement("div");
+        cell.className = "inventory-slot";
+        cell.setAttribute("aria-label", `Empty inventory slot ${slot + 1}`);
+        cell.textContent = "·";
+        document.getElementById("inventory-grid").append(cell);
+      }
+      for (const slotName of ["Head", "Chest", "Main hand", "Off hand", "Ring", "Charm"]) {
+        const cell = document.createElement("div");
+        cell.className = "equipment-slot";
+        cell.textContent = slotName;
+        document.getElementById("equipment-grid").append(cell);
+      }
+
+      async function parseResponse(response) {
+        const text = await response.text();
+        try {
+          return text ? JSON.parse(text) : {};
+        } catch {
+          throw new Error(`The backend returned a non-JSON response (HTTP ${response.status}).`);
+        }
+      }
+
+      async function apiRequest(path, user) {
+        const response = await fetch(path, {
+          credentials: "same-origin",
+          headers: { Authorization: `Bearer ${await user.getIdToken()}` },
+        });
+        const body = await parseResponse(response);
+        if (response.status === 401 && /backend session|sign-in session/i.test(body.message || "")) {
+          throw new Error("This account signed in on another device.");
+        }
+        if (!response.ok) {
+          throw new Error(body.message || `The backend returned HTTP ${response.status}.`);
+        }
+        return body;
+      }
+
+      function showLoadError(message) {
+        loadingTitle.textContent = "Could not enter the world";
+        loadingMessage.textContent = message;
+        loadingPanel.hidden = false;
+        setStatus(message, true);
+      }
+
+      function safeServerId(serverId) {
+        return typeof serverId === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(serverId);
+      }
+
+      function placeAtSpawnPoint() {
+        if (Number.isFinite(selectedCharacter?.x) && Number.isFinite(selectedCharacter?.y)) {
+          localPlayer.x = Math.max(18, Math.min(world.width - 18, selectedCharacter.x));
+          localPlayer.y = Math.max(18, Math.min(world.height - 18, selectedCharacter.y));
+          localPlayer.targetX = localPlayer.x;
+          localPlayer.targetY = localPlayer.y;
+          return;
+        }
+        let seed = 2166136261;
+        for (const character of `${currentUser.uid}:${tabSessionId}`) {
+          seed = Math.imul(seed ^ character.charCodeAt(0), 16777619);
+        }
+        const normalizedSeed = (seed >>> 0) / 4294967295;
+        const angle = normalizedSeed * Math.PI * 2;
+        const radius = 80 + ((seed >>> 8) % 90);
+        localPlayer.x = world.width / 2 + Math.cos(angle) * radius;
+        localPlayer.y = world.height / 2 + Math.sin(angle) * radius;
+        localPlayer.targetX = localPlayer.x;
+        localPlayer.targetY = localPlayer.y;
+      }
+
+      function playerRecord() {
+        return {
+          characterId: selectedCharacter.id,
+          name: selectedCharacter.name,
+          classType: selectedCharacter.classType,
+          lineage: selectedCharacter.lineage,
+          bodyType: selectedCharacter.bodyType,
+          hairStyle: selectedCharacter.hairStyle,
+          hairColor: selectedCharacter.hairColor,
+          faceStyle: selectedCharacter.faceStyle,
+          x: Math.round(localPlayer.x * 10) / 10,
+          y: Math.round(localPlayer.y * 10) / 10,
+          updatedAt: serverTimestamp(),
+        };
+      }
+
+      function startWorld() {
+        if (worldStarted) return;
+        worldStarted = true;
+        loadingPanel.hidden = true;
+        if (mobileControls) {
+          mobileLandscapePending = true;
+          enterFullscreenAndLockLandscape().catch(() => {
+            setStatus("The world is ready. Tap Fullscreen to enter landscape mode.");
+          });
+        }
+        resizeCanvas();
+        window.addEventListener("resize", resizeCanvas);
+        window.requestAnimationFrame(renderFrame);
+        connectToWorld().catch((error) => {
+          canWritePresence = false;
+          onlineCount.textContent = "Offline · solo";
+          setStatus(multiplayerFailureMessage(error), true);
+        });
+      }
+
+      async function connectToWorld() {
+        const roomReference = ref(database, `worldPlayers/${selectedCharacter.serverId}`);
+        playerReference = ref(database, `worldPlayers/${selectedCharacter.serverId}/${currentUser.uid}/${tabSessionId}`);
+        characterLocationReference = ref(database, `characters/${currentUser.uid}/${selectedCharacter.id}`);
+        await onDisconnect(playerReference).remove();
+        await set(playerReference, playerRecord());
+        canWritePresence = true;
+        startBackendSessionMonitor();
+        onValue(roomReference, (snapshot) => {
+          const roomPlayers = snapshot.val() || {};
+          const onlineIds = new Set();
+          const now = Date.now();
+          for (const [uid, sessions] of Object.entries(roomPlayers)) {
+            if (!sessions || typeof sessions !== "object") continue;
+            for (const [playerSessionId, player] of Object.entries(sessions)) {
+              if (
+                (uid === currentUser.uid && playerSessionId === tabSessionId)
+                || !Number.isFinite(player?.x)
+                || !Number.isFinite(player?.y)
+                || !Number.isFinite(player?.updatedAt)
+                || now - player.updatedAt > 15000
+              ) continue;
+              const playerKey = `${uid}:${playerSessionId}`;
+              onlineIds.add(playerKey);
+              const existing = remotePlayers.get(playerKey);
+              if (existing) {
+                if (snapRemotePlayersOnNextUpdate) {
+                  existing.x = player.x;
+                  existing.y = player.y;
+                }
+                existing.targetX = player.x;
+                existing.targetY = player.y;
+                existing.name = player.name;
+                existing.classType = player.classType;
+                existing.lineage = player.lineage;
+                existing.bodyType = player.bodyType;
+                existing.hairStyle = player.hairStyle;
+                existing.hairColor = player.hairColor;
+                existing.faceStyle = player.faceStyle;
+                existing.lastSeenAt = now;
+              } else {
+                remotePlayers.set(playerKey, {
+                  x: player.x,
+                  y: player.y,
+                  targetX: player.x,
+                  targetY: player.y,
+                  name: player.name,
+                  classType: player.classType,
+                  lineage: player.lineage,
+                  bodyType: player.bodyType,
+                  hairStyle: player.hairStyle,
+                  hairColor: player.hairColor,
+                  faceStyle: player.faceStyle,
+                  moving: false,
+                  facingX: 0,
+                  facingY: -1,
+                  lastSeenAt: now,
+                });
+              }
+            }
+          }
+          snapRemotePlayersOnNextUpdate = false;
+          for (const playerKey of remotePlayers.keys()) {
+            if (!onlineIds.has(playerKey)) remotePlayers.delete(playerKey);
+          }
+          updateOnlineStatus();
+        }, (error) => {
+          canWritePresence = false;
+          onlineCount.textContent = "Offline · solo";
+          setStatus(multiplayerFailureMessage(error), true);
+        });
+      }
+
+      function updateOnlineStatus() {
+        const count = remotePlayers.size + 1;
+        onlineCount.textContent = `${count} adventurer${count === 1 ? "" : "s"} online`;
+        setStatus(count === 1
+          ? "You are the only adventurer online in this realm."
+          : `Live world connected · ${count} adventurers in this realm.`);
+      }
+
+      function startBackendSessionMonitor() {
+        if (sessionMonitorId !== null) window.clearInterval(sessionMonitorId);
+        sessionMonitorId = window.setInterval(async () => {
+          try {
+            await apiRequest("/api/auth/session", currentUser);
+          } catch (error) {
+            if (/another device|backend session|sign-in session|session has expired/i.test(error.message || "")) {
+              canWritePresence = false;
+              window.clearInterval(sessionMonitorId);
+              sessionMonitorId = null;
+              try {
+                if (playerReference) await remove(playerReference);
+              } catch (removeError) {
+                console.error("Could not remove expired player presence immediately.", removeError);
+              }
+              void signOut(auth).catch((signOutError) => {
+                console.error("Could not sign out the expired game session.", signOutError);
+              });
+              window.location.replace("/?reason=session-ended");
+              return;
+            }
+            setStatus(`Could not verify the game session: ${error.message || "Check your connection."}`, true);
+          }
+        }, 30000);
+      }
+
+      function resizeCanvas() {
+        const bounds = canvas.getBoundingClientRect();
+        const scale = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.max(1, Math.round(bounds.width * scale));
+        canvas.height = Math.max(1, Math.round(bounds.height * scale));
+        context.setTransform(scale, 0, 0, scale, 0, 0);
+        if (avatarRenderer) avatarRenderer.setSize(bounds.width, bounds.height, false);
+      }
+
+      function hashGrid(x, y) {
+        let value = (x * 374761393 + y * 668265263) | 0;
+        value = Math.imul(value ^ (value >>> 13), 1274126177);
+        return ((value ^ (value >>> 16)) >>> 0) / 4294967295;
+      }
+
+      function drawTree(x, y, size, tint) {
+        context.fillStyle = "rgba(3, 18, 17, 0.25)";
+        context.beginPath();
+        context.ellipse(x + 5, y + size * 0.35, size * 0.78, size * 0.42, 0, 0, Math.PI * 2);
+        context.fill();
+        context.fillStyle = "#573e2b";
+        context.fillRect(x - size * 0.12, y, size * 0.24, size * 0.68);
+        context.fillStyle = tint;
+        context.beginPath();
+        context.arc(x, y - size * 0.12, size * 0.62, 0, Math.PI * 2);
+        context.arc(x - size * 0.35, y + size * 0.08, size * 0.43, 0, Math.PI * 2);
+        context.arc(x + size * 0.34, y + size * 0.08, size * 0.44, 0, Math.PI * 2);
+        context.fill();
+        context.fillStyle = "rgba(178, 209, 137, 0.25)";
+        context.beginPath();
+        context.arc(x - size * 0.14, y - size * 0.3, size * 0.2, 0, Math.PI * 2);
+        context.fill();
+      }
+
+      function drawWorld(cameraX, cameraY, width, height) {
+        context.fillStyle = "#183c3a";
+        context.fillRect(0, 0, world.width, world.height);
+        const tileSize = 72;
+        const startX = Math.max(0, Math.floor((cameraX - width / 2) / tileSize));
+        const endX = Math.min(Math.ceil(world.width / tileSize), Math.ceil((cameraX + width / 2) / tileSize) + 1);
+        const startY = Math.max(0, Math.floor((cameraY - height / 2) / tileSize));
+        const endY = Math.min(Math.ceil(world.height / tileSize), Math.ceil((cameraY + height / 2) / tileSize) + 1);
+        for (let tileY = startY; tileY < endY; tileY += 1) {
+          for (let tileX = startX; tileX < endX; tileX += 1) {
+            const shade = hashGrid(tileX, tileY);
+            context.fillStyle = shade > 0.5 ? "#244a3a" : "#214635";
+            context.fillRect(tileX * tileSize, tileY * tileSize, tileSize, tileSize);
+            if (shade > 0.84) {
+              context.fillStyle = "rgba(181, 194, 115, 0.17)";
+              context.beginPath();
+              context.arc(tileX * tileSize + 18 + shade * 22, tileY * tileSize + 20, 2.2, 0, Math.PI * 2);
+              context.fill();
+            }
+          }
+        }
+
+        context.lineCap = "round";
+        context.beginPath();
+        context.moveTo(0, 1180);
+        context.bezierCurveTo(780, 1110, 980, 1320, 1600, 1200);
+        context.bezierCurveTo(2200, 1080, 2480, 1260, world.width, 1170);
+        context.strokeStyle = "#806d4d";
+        context.lineWidth = 94;
+        context.stroke();
+        context.strokeStyle = "#b5a078";
+        context.lineWidth = 3;
+        context.setLineDash([14, 18]);
+        context.stroke();
+        context.setLineDash([]);
+
+        const ponds = [
+          { x: 560, y: 560, rx: 175, ry: 112 },
+          { x: 2620, y: 1730, rx: 210, ry: 130 },
+          { x: 2360, y: 520, rx: 112, ry: 76 },
+        ];
+        for (const pond of ponds) {
+          context.fillStyle = "#164b55";
+          context.beginPath();
+          context.ellipse(pond.x, pond.y, pond.rx + 13, pond.ry + 13, -0.15, 0, Math.PI * 2);
+          context.fill();
+          context.fillStyle = "#27707a";
+          context.beginPath();
+          context.ellipse(pond.x, pond.y, pond.rx, pond.ry, -0.15, 0, Math.PI * 2);
+          context.fill();
+          context.strokeStyle = "rgba(181, 235, 218, 0.42)";
+          context.lineWidth = 3;
+          context.stroke();
+        }
+
+        const treeStartX = Math.max(0, Math.floor((cameraX - width / 2) / 90));
+        const treeEndX = Math.min(Math.ceil(world.width / 90), Math.ceil((cameraX + width / 2) / 90) + 1);
+        const treeStartY = Math.max(0, Math.floor((cameraY - height / 2) / 90));
+        const treeEndY = Math.min(Math.ceil(world.height / 90), Math.ceil((cameraY + height / 2) / 90) + 1);
+        for (let tileY = treeStartY; tileY < treeEndY; tileY += 1) {
+          for (let tileX = treeStartX; tileX < treeEndX; tileX += 1) {
+            const shade = hashGrid(tileX + 47, tileY - 19);
+            if (shade > 0.76) {
+              const tint = shade > 0.92 ? "#376b48" : "#315c42";
+              drawTree(tileX * 90 + 28 + shade * 31, tileY * 90 + 24 + hashGrid(tileY, tileX) * 32, 25 + shade * 17, tint);
+            }
+          }
+        }
+
+        drawLandmark(835, 870, "Mosslight Camp");
+        drawLandmark(2180, 1580, "Sunken Watch");
+        drawLandmark(1640, 400, "Aether Grove");
+      }
+
+      function drawLandmark(x, y, label) {
+        context.fillStyle = "rgba(15, 27, 24, 0.75)";
+        context.beginPath();
+        context.arc(x, y, 34, 0, Math.PI * 2);
+        context.fill();
+        context.strokeStyle = "rgba(239, 189, 98, 0.72)";
+        context.lineWidth = 2;
+        context.stroke();
+        context.fillStyle = "#efbd62";
+        context.beginPath();
+        context.arc(x, y, 7, 0, Math.PI * 2);
+        context.fill();
+        context.fillStyle = "#f4e6c6";
+        context.font = "700 12px Inter, Segoe UI, sans-serif";
+        context.textAlign = "center";
+        context.fillText(label, x, y + 52);
+      }
+
+      function createAvatarModel(player, isLocal) {
+        const group = new THREE.Group();
+        const armor = new THREE.MeshStandardMaterial({
+          color: classColors[player.classType] || "#dce8df",
+          roughness: 0.62,
+          metalness: 0.12,
+        });
+        const armorShadow = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(classColors[player.classType] || "#dce8df").multiplyScalar(0.52),
+          roughness: 0.76,
+          metalness: 0.08,
+        });
+        const trim = new THREE.MeshStandardMaterial({ color: "#f0d087", roughness: 0.42, metalness: 0.34 });
+        const skin = new THREE.MeshStandardMaterial({ color: "#d6a784", roughness: 0.86 });
+        const hair = new THREE.MeshStandardMaterial({
+          color: hairColors[player.hairColor] || hairColors.silver,
+          roughness: 0.82,
+        });
+        const dark = new THREE.MeshStandardMaterial({ color: "#29343a", roughness: 0.78 });
+        const eye = new THREE.MeshStandardMaterial({ color: "#30241f", roughness: 0.7 });
+        const materials = [armor, armorShadow, trim, skin, hair, dark, eye];
+        const addMesh = (parent, geometry, material, x, y, z, scaleX = 1, scaleY = 1, scaleZ = 1) => {
+          const mesh = new THREE.Mesh(geometry, material);
+          mesh.position.set(x, y, z);
+          mesh.scale.set(scaleX, scaleY, scaleZ);
+          parent.add(mesh);
+          return mesh;
+        };
+
+        const auraMaterial = new THREE.MeshBasicMaterial({
+          color: isLocal ? "#efbd62" : "#9ce8e7",
+          transparent: true,
+          opacity: isLocal ? 0.3 : 0.22,
+          depthWrite: false,
+        });
+        materials.push(auraMaterial);
+        addMesh(group, new THREE.CircleGeometry(10, 24), auraMaterial, 0, 1, -3, 1, 0.42, 1);
+
+        const capeShape = new THREE.Shape();
+        capeShape.moveTo(-4.5, 27);
+        capeShape.lineTo(4.5, 27);
+        capeShape.lineTo(6, 12);
+        capeShape.lineTo(0, 5);
+        capeShape.lineTo(-6, 12);
+        capeShape.closePath();
+        addMesh(group, new THREE.ShapeGeometry(capeShape), armorShadow, 0, 0, -2);
+
+        const torso = new THREE.Group();
+        torso.position.set(0, 20, 0);
+        group.add(torso);
+        addMesh(
+          torso,
+          new THREE.CylinderGeometry(4.4, 5.2, 12, 8),
+          armor,
+          0,
+          0,
+          0,
+          player.bodyType === "feminine" ? 0.91 : 1,
+          1,
+          1,
+        );
+        addMesh(torso, new THREE.BoxGeometry(7.5, 6.5, 1.4), armorShadow, 0, 1.5, 4.5);
+        addMesh(torso, new THREE.BoxGeometry(1.15, 6.5, 0.5), trim, 0, 1.5, 5.3);
+        addMesh(torso, new THREE.CylinderGeometry(4.8, 4.8, 2, 8), dark, 0, -4.4, 0);
+        addMesh(torso, new THREE.BoxGeometry(2.2, 2.2, 1.2), trim, 0, -4.4, 4.7);
+
+        for (const side of [-1, 1]) {
+          addMesh(torso, new THREE.SphereGeometry(3.1, 8, 6), armorShadow, side * 5.1, 4, 0, 1.15, 0.82, 1.05);
+          addMesh(torso, new THREE.SphereGeometry(2.2, 7, 5), armor, side * 5.3, 4.2, 1.4, 1, 0.78, 0.82);
+        }
+
+        const legs = [];
+        for (const side of [-1, 1]) {
+          const leg = new THREE.Group();
+          leg.position.set(side * 2.7, 12, 0);
+          group.add(leg);
+          addMesh(leg, new THREE.CylinderGeometry(2, 2.4, 9, 7), armorShadow, 0, -4.3, 0);
+          addMesh(leg, new THREE.BoxGeometry(4.5, 3, 6), dark, 0, -9.1, 1.3);
+          legs.push(leg);
+        }
+
+        const arms = [];
+        for (const side of [-1, 1]) {
+          const arm = new THREE.Group();
+          arm.position.set(side * 7.1, 24.5, 0);
+          group.add(arm);
+          addMesh(arm, new THREE.CylinderGeometry(1.7, 2, 8.5, 7), armor, 0, -4.1, 0);
+          addMesh(arm, new THREE.SphereGeometry(2, 7, 5), skin, 0, -8.7, 0.3);
+          arms.push(arm);
+        }
+
+        addMesh(group, new THREE.CylinderGeometry(1.8, 1.8, 3.2, 8), skin, 0, 27.1, 0);
+        const head = new THREE.Group();
+        head.position.set(0, 32, 0);
+        group.add(head);
+        addMesh(head, new THREE.SphereGeometry(5, 12, 8), skin, 0, 0, 0);
+        addMesh(head, new THREE.SphereGeometry(5.4, 10, 7, 0, Math.PI * 2, 0, Math.PI * 0.52), hair, 0, 1.5, -0.15);
+        addMesh(head, new THREE.SphereGeometry(0.72, 6, 5), eye, -1.65, 0.25, 4.48);
+        addMesh(head, new THREE.SphereGeometry(0.72, 6, 5), eye, 1.65, 0.25, 4.48);
+        if (player.hairStyle === "spire") {
+          addMesh(head, new THREE.ConeGeometry(3.1, 7, 6), hair, 0, 6.3, -0.2);
+        } else if (player.hairStyle === "nomad") {
+          addMesh(head, new THREE.SphereGeometry(5.2, 9, 6), hair, 0, 0.7, -1.5, 1, 0.86, 1);
+        } else if (player.hairStyle === "aegis") {
+          addMesh(head, new THREE.BoxGeometry(2.2, 6, 4.5), hair, -4.1, -1.4, -0.1);
+          addMesh(head, new THREE.BoxGeometry(2.2, 6, 4.5), hair, 4.1, -1.4, -0.1);
+        }
+
+        return {
+          group,
+          torso,
+          head,
+          arms,
+          legs,
+          materials,
+          appearance: [player.classType, player.bodyType, player.hairStyle, player.hairColor].join("|"),
+        };
+      }
+
+      function disposeAvatarModel(model) {
+        avatarScene.remove(model.group);
+        model.group.traverse((object) => {
+          if (object.isMesh) object.geometry.dispose();
+        });
+        for (const material of model.materials) material.dispose();
+      }
+
+      function updateAvatarModel(key, player, isLocal, time) {
+        const appearance = [player.classType, player.bodyType, player.hairStyle, player.hairColor].join("|");
+        let model = avatarModels.get(key);
+        if (model && model.appearance !== appearance) {
+          disposeAvatarModel(model);
+          avatarModels.delete(key);
+          model = null;
+        }
+        if (!model) {
+          model = createAvatarModel(player, isLocal);
+          avatarModels.set(key, model);
+          avatarScene.add(model.group);
+        }
+
+        model.group.position.set(player.x, -player.y, 0);
+        model.group.rotation.y = player.facingX > 0
+          ? Math.PI / 2
+          : player.facingX < 0
+            ? -Math.PI / 2
+            : player.facingY > 0 ? 0 : Math.PI;
+
+        const walkCycle = time * 0.012;
+        const swing = player.moving ? Math.sin(walkCycle) * 0.52 : Math.sin(time * 0.002) * 0.035;
+        model.arms[0].rotation.z = swing;
+        model.arms[1].rotation.z = -swing;
+        model.legs[0].rotation.z = -swing * 0.85;
+        model.legs[1].rotation.z = swing * 0.85;
+        model.torso.position.y = 20 + (player.moving ? Math.abs(Math.sin(walkCycle * 2)) * 0.65 : Math.sin(time * 0.003) * 0.35);
+        model.head.position.y = 32 + Math.sin(time * 0.0025) * 0.18;
+      }
+
+      function drawPlayerLabel(player, isLocal) {
+        const name = typeof player.name === "string" && player.name.trim()
+          ? player.name
+          : isLocal ? selectedCharacter?.name || "Champion" : "Adventurer";
+        context.save();
+        context.translate(player.x, player.y);
+        context.fillStyle = isLocal ? "rgba(255, 222, 146, 0.2)" : "rgba(160, 224, 217, 0.16)";
+        context.beginPath();
+        context.ellipse(0, 1, 12, 4, 0, 0, Math.PI * 2);
+        context.fill();
+        context.font = "700 10px Inter, Segoe UI, sans-serif";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        const labelWidth = context.measureText(name).width + 12;
+        context.fillStyle = "rgba(5, 13, 15, 0.78)";
+        context.fillRect(-labelWidth / 2, -44, labelWidth, 14);
+        context.fillStyle = isLocal ? "#fff0c8" : "#e2ffff";
+        context.fillText(name, 0, -37);
+        context.restore();
+      }
+
+      function drawPlayerFallback(player, isLocal, time) {
+        const armorColor = classColors[player.classType] || "#dce8df";
+        const name = typeof player.name === "string" && player.name.trim()
+          ? player.name
+          : isLocal ? selectedCharacter?.name || "Champion" : "Adventurer";
+        const hairColor = hairColors[player.hairColor] || hairColors.silver;
+        const walkCycle = player.moving ? Math.sin(time * 0.013) : 0;
+        const idleBreath = player.moving ? 0 : Math.sin(time * 0.003) * 0.45;
+        const torsoWidth = player.bodyType === "feminine" ? 7 : 8;
+
+        context.save();
+        context.translate(player.x, player.y);
+        context.fillStyle = "rgba(3, 10, 11, 0.4)";
+        context.beginPath();
+        context.ellipse(1, 12, 12, 5, 0, 0, Math.PI * 2);
+        context.fill();
+
+        context.fillStyle = isLocal ? "rgba(255, 222, 146, 0.14)" : "rgba(160, 224, 217, 0.1)";
+        context.beginPath();
+        context.ellipse(0, 5, 13, 16, 0, 0, Math.PI * 2);
+        context.fill();
+        context.fillStyle = "#08120f";
+        context.font = "700 10px Inter, Segoe UI, sans-serif";
+        context.textAlign = "center";
+        context.fillText(name, 0, -31);
+
+        context.translate(0, idleBreath + (player.moving ? Math.abs(walkCycle) * 1.1 : 0));
+        const facingX = Number.isFinite(player.facingX) ? player.facingX : 0;
+        const facingY = Number.isFinite(player.facingY) ? player.facingY : -1;
+        const facingAngle = Math.abs(facingX) > Math.abs(facingY)
+          ? facingX > 0 ? Math.PI / 2 : -Math.PI / 2
+          : facingY > 0 ? Math.PI : 0;
+        context.rotate(facingAngle);
+        context.fillStyle = "#26363b";
+        context.beginPath();
+        context.moveTo(-6, -8);
+        context.lineTo(6, -8);
+        context.lineTo(9, 7);
+        context.lineTo(0, 12);
+        context.lineTo(-9, 7);
+        context.closePath();
+        context.fill();
+
+        context.lineCap = "round";
+        context.lineWidth = 5;
+        context.strokeStyle = "#303640";
+        context.beginPath();
+        context.moveTo(-3, 4);
+        context.lineTo(-4 - walkCycle * 2.5, 12);
+        context.moveTo(3, 4);
+        context.lineTo(4 + walkCycle * 2.5, 12);
+        context.stroke();
+        context.lineWidth = 4;
+        context.strokeStyle = "#9e704c";
+        context.beginPath();
+        context.moveTo(-4, 12);
+        context.lineTo(-5 - walkCycle * 2.5, 13);
+        context.moveTo(4, 12);
+        context.lineTo(5 + walkCycle * 2.5, 13);
+        context.stroke();
+
+        context.lineWidth = 4;
+        context.strokeStyle = armorColor;
+        context.beginPath();
+        context.moveTo(-6, -7);
+        context.lineTo(-9 - walkCycle * 1.5, 0);
+        context.moveTo(6, -7);
+        context.lineTo(9 + walkCycle * 1.5, 0);
+        context.stroke();
+        context.fillStyle = "#d6a784";
+        context.beginPath();
+        context.arc(-9 - walkCycle * 1.5, 1, 2.2, 0, Math.PI * 2);
+        context.arc(9 + walkCycle * 1.5, 1, 2.2, 0, Math.PI * 2);
+        context.fill();
+
+        context.fillStyle = armorColor;
+        context.beginPath();
+        context.moveTo(-torsoWidth, -8);
+        context.lineTo(-6, -11);
+        context.lineTo(0, -9);
+        context.lineTo(6, -11);
+        context.lineTo(torsoWidth, -8);
+        context.lineTo(6, 3);
+        context.lineTo(-6, 3);
+        context.closePath();
+        context.fill();
+        context.strokeStyle = "rgba(255, 245, 212, 0.65)";
+        context.lineWidth = 1;
+        context.stroke();
+        context.fillStyle = "rgba(20, 32, 34, 0.76)";
+        context.fillRect(-6, -2, 12, 3);
+        context.fillStyle = "#f0d087";
+        context.fillRect(-1.5, -2, 3, 3);
+
+        context.fillStyle = "#d6a784";
+        context.beginPath();
+        context.ellipse(0, -15, 5.2, 6.1, 0, 0, Math.PI * 2);
+        context.fill();
+        context.fillStyle = hairColor;
+        context.beginPath();
+        if (player.hairStyle === "spire") {
+          context.moveTo(-5, -16);
+          context.lineTo(-3, -23);
+          context.lineTo(1, -19);
+          context.lineTo(5, -22);
+          context.lineTo(5, -14);
+          context.closePath();
+        } else if (player.hairStyle === "nomad") {
+          context.ellipse(0, -19, 6, 3.2, 0, Math.PI, Math.PI * 2);
+          context.lineTo(5, -16);
+          context.lineTo(-5, -16);
+          context.closePath();
+        } else {
+          context.ellipse(0, -18.5, 6, 4.1, 0, Math.PI, Math.PI * 2);
+          context.lineTo(5, -14);
+          if (player.hairStyle === "aegis") context.lineTo(4, -9);
+          context.lineTo(-5, -14);
+          if (player.hairStyle === "aegis") context.lineTo(-4, -9);
+          context.closePath();
+        }
+        context.fill();
+        context.fillStyle = "#34241e";
+        context.fillRect(-2.2, -15.5, 1, 1);
+        context.fillRect(1.2, -15.5, 1, 1);
+        context.strokeStyle = player.faceStyle === "battle-ready" ? "#754b3a" : "rgba(117, 75, 58, 0.55)";
+        context.lineWidth = 0.7;
+        context.beginPath();
+        context.moveTo(-1.5, -12.4);
+        context.lineTo(1.5, -12.4);
+        context.stroke();
+        context.restore();
+      }
+
+      function drawMinimap() {
+        const width = minimapCanvas.width;
+        const height = minimapCanvas.height;
+        minimapContext.clearRect(0, 0, width, height);
+        minimapContext.fillStyle = "#214638";
+        minimapContext.fillRect(0, 0, width, height);
+        minimapContext.strokeStyle = "rgba(201, 188, 143, 0.62)";
+        minimapContext.lineWidth = 6;
+        minimapContext.beginPath();
+        minimapContext.moveTo(0, height * 0.5);
+        minimapContext.bezierCurveTo(width * 0.28, height * 0.42, width * 0.52, height * 0.6, width, height * 0.48);
+        minimapContext.stroke();
+        minimapContext.fillStyle = "#286c78";
+        minimapContext.beginPath();
+        minimapContext.ellipse(width * 0.18, height * 0.22, 16, 9, -0.15, 0, Math.PI * 2);
+        minimapContext.ellipse(width * 0.82, height * 0.72, 20, 10, -0.15, 0, Math.PI * 2);
+        minimapContext.fill();
+
+        const drawMarker = (player, color, radius) => {
+          const x = (player.x / world.width) * width;
+          const y = (player.y / world.height) * height;
+          minimapContext.fillStyle = color;
+          minimapContext.beginPath();
+          minimapContext.arc(x, y, radius, 0, Math.PI * 2);
+          minimapContext.fill();
+        };
+        for (const player of remotePlayers.values()) drawMarker(player, "#9ce8e7", 3);
+        drawMarker(localPlayer, "#ffe08a", 4);
+        document.getElementById("minimap-coordinates").textContent =
+          `${Math.round(localPlayer.x)}, ${Math.round(localPlayer.y)}`;
+      }
+
+      function updateLocation() {
+        if (localPlayer.y < 800) {
+          document.getElementById("location-label").textContent = "Aether Grove";
+          document.getElementById("minimap-location").textContent = "Aether Grove";
+        } else if (localPlayer.x < 1050) {
+          document.getElementById("location-label").textContent = "Mosslight Wilds";
+          document.getElementById("minimap-location").textContent = "Mosslight Wilds";
+        } else if (localPlayer.x > 2050) {
+          document.getElementById("location-label").textContent = "The Sunken Reach";
+          document.getElementById("minimap-location").textContent = "Sunken Reach";
+        } else {
+          document.getElementById("location-label").textContent = "The Verdant Reach";
+          document.getElementById("minimap-location").textContent = "Verdant Reach";
+        }
+      }
+
+      function renderFrame(time) {
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        const delta = Math.min((time - (lastFrameTime || time)) / 1000, 0.05);
+        lastFrameTime = time;
+        movePlayer(delta);
+        syncPlayerState(time);
+
+        let expiredPlayer = false;
+        const now = Date.now();
+        for (const [playerKey, player] of remotePlayers) {
+          if (now - player.lastSeenAt > 15000) {
+            remotePlayers.delete(playerKey);
+            expiredPlayer = true;
+          }
+        }
+        if (expiredPlayer) updateOnlineStatus();
+
+        for (const player of remotePlayers.values()) {
+          const dx = player.targetX - player.x;
+          const dy = player.targetY - player.y;
+          player.moving = Math.hypot(dx, dy) > 0.3;
+          if (player.moving) {
+            if (Math.abs(dx) > Math.abs(dy)) {
+              player.facingX = Math.sign(dx);
+              player.facingY = 0;
+            } else {
+              player.facingX = 0;
+              player.facingY = Math.sign(dy);
+            }
+          }
+          const interpolation = 1 - Math.exp(-delta * 18);
+          player.x += dx * interpolation;
+          player.y += dy * interpolation;
+        }
+
+        const cameraX = Math.max(width / 2, Math.min(world.width - width / 2, localPlayer.x));
+        const cameraY = Math.max(height / 2, Math.min(world.height - height / 2, localPlayer.y));
+        context.setTransform(window.devicePixelRatio ? Math.min(window.devicePixelRatio, 2) : 1, 0, 0, window.devicePixelRatio ? Math.min(window.devicePixelRatio, 2) : 1, 0, 0);
+        context.clearRect(0, 0, width, height);
+        context.save();
+        context.translate(width / 2 - cameraX, height / 2 - cameraY);
+        drawWorld(cameraX, cameraY, width, height);
+        if (avatarRenderer) {
+          const activeAvatarKeys = new Set(["local"]);
+          for (const [playerKey, player] of remotePlayers) {
+            activeAvatarKeys.add(playerKey);
+            drawPlayerLabel(player, false);
+            updateAvatarModel(playerKey, player, false, time);
+          }
+          drawPlayerLabel(localPlayer, true);
+          updateAvatarModel("local", localPlayer, true, time);
+          for (const [playerKey, model] of avatarModels) {
+            if (!activeAvatarKeys.has(playerKey)) {
+              disposeAvatarModel(model);
+              avatarModels.delete(playerKey);
+            }
+          }
+        } else {
+          for (const player of remotePlayers.values()) drawPlayerFallback(player, false, time);
+          drawPlayerFallback(localPlayer, true, time);
+        }
+        context.restore();
+        if (avatarRenderer) {
+          avatarCamera.left = -width / 2;
+          avatarCamera.right = width / 2;
+          avatarCamera.top = height / 2;
+          avatarCamera.bottom = -height / 2;
+          avatarCamera.position.set(cameraX, -cameraY, 1000);
+          avatarCamera.lookAt(cameraX, -cameraY, 0);
+          avatarCamera.updateProjectionMatrix();
+          avatarRenderer.render(avatarScene, avatarCamera);
+        }
+        updateLocation();
+        drawMinimap();
+        window.requestAnimationFrame(renderFrame);
+      }
+
+      function movePlayer(delta) {
+        const horizontal = Math.max(-1, Math.min(1,
+          (heldDirections.has("right") ? 1 : 0) - (heldDirections.has("left") ? 1 : 0) + joystickVector.x));
+        const vertical = Math.max(-1, Math.min(1,
+          (heldDirections.has("down") ? 1 : 0) - (heldDirections.has("up") ? 1 : 0) + joystickVector.y));
+        if (Math.hypot(horizontal, vertical) < 0.08) {
+          localPlayer.moving = false;
+          return;
+        }
+        localPlayer.moving = true;
+        const length = Math.hypot(horizontal, vertical);
+        const speed = 210;
+        const directionX = horizontal / length;
+        const directionY = vertical / length;
+        const dx = directionX * speed * delta;
+        const dy = directionY * speed * delta;
+        if (Math.abs(horizontal) > Math.abs(vertical)) {
+          localPlayer.facingX = Math.sign(horizontal);
+          localPlayer.facingY = 0;
+        } else {
+          localPlayer.facingX = 0;
+          localPlayer.facingY = Math.sign(vertical);
+        }
+        localPlayer.x = Math.max(18, Math.min(world.width - 18, localPlayer.x + dx));
+        localPlayer.y = Math.max(18, Math.min(world.height - 18, localPlayer.y + dy));
+      }
+
+      function syncPlayerState(time) {
+        const x = Math.round(localPlayer.x * 10) / 10;
+        const y = Math.round(localPlayer.y * 10) / 10;
+        const heartbeatDue = time - lastPresenceHeartbeat >= 5000;
+        const movementUpdateDue = localPlayer.moving && time - lastPositionWrite >= 100;
+        if (canWritePresence && !writePending && (heartbeatDue || movementUpdateDue)) {
+          writePending = true;
+          lastPositionWrite = time;
+          lastPresenceHeartbeat = time;
+          update(playerReference, { x, y, updatedAt: serverTimestamp() })
+            .catch((error) => {
+              canWritePresence = false;
+              onlineCount.textContent = "Offline · solo";
+              setStatus(multiplayerFailureMessage(error), true);
+            })
+            .finally(() => {
+              writePending = false;
+            });
+        }
+
+        const movedSinceSave = savedLocation === null
+          || Math.hypot(x - savedLocation.x, y - savedLocation.y) >= 24;
+        if (!canSaveLocation || !characterLocationReference || locationWritePending
+            || !movedSinceSave || time - lastLocationWrite < 1000) return;
+        locationWritePending = true;
+        lastLocationWrite = time;
+        update(characterLocationReference, { x, y, updatedAt: serverTimestamp() })
+          .then(() => {
+            savedLocation = { x, y };
+          })
+          .catch((error) => {
+            canSaveLocation = false;
+            console.error("Could not save the selected character's last world location.", error);
+            setStatus("Could not save your character's location. Publish the latest database.rules.json and re-enter.", true);
+          })
+          .finally(() => {
+            locationWritePending = false;
+          });
+      }
+
+      const keyDirections = new Map([
+        ["w", "up"], ["arrowup", "up"],
+        ["a", "left"], ["arrowleft", "left"],
+        ["s", "down"], ["arrowdown", "down"],
+        ["d", "right"], ["arrowright", "right"],
+      ]);
+      let joystickPointerId = null;
+      function updateJoystick(event) {
+        const bounds = virtualJoystick.getBoundingClientRect();
+        const centerX = bounds.left + bounds.width / 2;
+        const centerY = bounds.top + bounds.height / 2;
+        const maxOffset = bounds.width / 2 - joystickThumb.offsetWidth / 2 - 8;
+        let offsetX = event.clientX - centerX;
+        let offsetY = event.clientY - centerY;
+        const distance = Math.hypot(offsetX, offsetY);
+        if (distance > maxOffset) {
+          offsetX = (offsetX / distance) * maxOffset;
+          offsetY = (offsetY / distance) * maxOffset;
+        }
+        joystickVector.x = offsetX / maxOffset;
+        joystickVector.y = offsetY / maxOffset;
+        joystickThumb.style.transform = `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`;
+      }
+
+      function resetJoystick() {
+        joystickPointerId = null;
+        joystickVector.x = 0;
+        joystickVector.y = 0;
+        joystickThumb.style.transform = "translate(-50%, -50%)";
+        virtualJoystick.removeAttribute("data-active");
+      }
+
+      virtualJoystick.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        joystickPointerId = event.pointerId;
+        virtualJoystick.dataset.active = "true";
+        virtualJoystick.setPointerCapture(event.pointerId);
+        updateJoystick(event);
+      });
+      virtualJoystick.addEventListener("pointermove", (event) => {
+        if (event.pointerId === joystickPointerId) updateJoystick(event);
+      });
+      virtualJoystick.addEventListener("pointerup", (event) => {
+        if (event.pointerId === joystickPointerId) resetJoystick();
+      });
+      virtualJoystick.addEventListener("pointercancel", resetJoystick);
+      virtualJoystick.addEventListener("lostpointercapture", resetJoystick);
+
+      window.addEventListener("keydown", (event) => {
+        const direction = keyDirections.get(event.key.toLowerCase());
+        if (!direction) return;
+        event.preventDefault();
+        heldDirections.add(direction);
+      });
+      window.addEventListener("keyup", (event) => {
+        const direction = keyDirections.get(event.key.toLowerCase());
+        if (direction) heldDirections.delete(direction);
+      });
+      window.addEventListener("blur", () => {
+        heldDirections.clear();
+        resetJoystick();
+      });
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          lastFrameTime = 0;
+          snapRemotePlayersOnNextUpdate = true;
+        }
+      });
+
+      fullscreenButton.addEventListener("click", async () => {
+        try {
+          if (document.fullscreenElement) {
+            await document.exitFullscreen();
+            return;
+          }
+          await enterFullscreenAndLockLandscape();
+        } catch (error) {
+          mobileLandscapePending = mobileControls;
+          setStatus(error.message || "Could not enter fullscreen. Your browser may not allow it.", true);
+        }
+      });
+      document.addEventListener("fullscreenchange", () => {
+        fullscreenButton.textContent = document.fullscreenElement ? "Exit fullscreen" : "Fullscreen";
+        if (mobileControls && !document.fullscreenElement) {
+          mobileLandscapePending = true;
+          setStatus(currentStatusMessage);
+        }
+      });
+
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          window.location.replace("/");
+          return;
+        }
+        currentUser = user;
+        try {
+          await reload(user);
+          if (!user.emailVerified) {
+            await signOut(auth);
+            window.location.replace("/");
+            return;
+          }
+          if (!requestedCharacterId) {
+            showLoadError("Choose a character from your roster before entering the world.");
+            return;
+          }
+          const characters = await apiRequest("/api/auth/characters", user);
+          selectedCharacter = characters.find((character) => character.id === requestedCharacterId);
+          if (!selectedCharacter) {
+            showLoadError("That character was not found in your account. Return to your roster and choose another.");
+            return;
+          }
+          if (!safeServerId(selectedCharacter.serverId)) {
+            showLoadError("This character has an invalid realm ID and cannot join the live world.");
+            return;
+          }
+          const characterClass = classLabels[selectedCharacter.classType];
+          if (!characterClass) {
+            showLoadError("This character has an unsupported class and cannot join the world.");
+            return;
+          }
+          localPlayer.name = selectedCharacter.name;
+          localPlayer.classType = selectedCharacter.classType;
+          localPlayer.lineage = selectedCharacter.lineage;
+          localPlayer.bodyType = selectedCharacter.bodyType;
+          localPlayer.hairStyle = selectedCharacter.hairStyle;
+          localPlayer.hairColor = selectedCharacter.hairColor;
+          localPlayer.faceStyle = selectedCharacter.faceStyle;
+          placeAtSpawnPoint();
+          document.getElementById("player-name").textContent = selectedCharacter.name;
+          document.getElementById("player-class").textContent = characterClass;
+          document.getElementById("player-mark").textContent = selectedCharacter.name.slice(0, 1).toUpperCase();
+          document.getElementById("sheet-name").textContent = selectedCharacter.name;
+          document.getElementById("sheet-class").textContent = characterClass;
+          document.getElementById("sheet-avatar").textContent = selectedCharacter.name.slice(0, 1).toUpperCase();
+          document.getElementById("sheet-lineage").textContent = selectedCharacter.lineage || "Unknown";
+          document.getElementById("sheet-realm").textContent = selectedCharacter.serverId;
+          rosterLink.href = `/characters?serverId=${encodeURIComponent(selectedCharacter.serverId)}`;
+          startWorld();
+        } catch (error) {
+          if (/backend session|sign-in session|another device/i.test(error.message || "")) {
+            await signOut(auth);
+            sessionStorage.setItem("godfall-session-ended", "account-switched");
+            window.location.replace("/?reason=account-switched");
+            return;
+          }
+          showLoadError(error.message || "Could not load your selected character.");
+        }
+      });
+    </script>
+  </body>
+</html>

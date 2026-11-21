@@ -27,16 +27,19 @@ public class GameController {
 	private final Resource gamePage;
 	private final Resource characterCreationPage;
 	private final Resource characterSelectionPage;
+	private final Resource playPage;
 
 	public GameController(
 			BackendJwtService backendJwtService,
 			@Value("classpath:/templates/game.html") Resource gamePage,
 			@Value("classpath:/templates/character-creation.html") Resource characterCreationPage,
-			@Value("classpath:/templates/characters.html") Resource characterSelectionPage) {
+			@Value("classpath:/templates/characters.html") Resource characterSelectionPage,
+			@Value("classpath:/templates/play.html") Resource playPage) {
 		this.backendJwtService = backendJwtService;
 		this.gamePage = gamePage;
 		this.characterCreationPage = characterCreationPage;
 		this.characterSelectionPage = characterSelectionPage;
+		this.playPage = playPage;
 	}
 
 	@GetMapping("/game")
@@ -55,6 +58,12 @@ public class GameController {
 	public ResponseEntity<byte[]> characterSelection(
 			@CookieValue(value = BackendJwtService.COOKIE_NAME, required = false) String sessionToken) {
 		return protectedPage(sessionToken, characterSelectionPage, "character selection");
+	}
+
+	@GetMapping("/play")
+	public ResponseEntity<byte[]> play(
+			@CookieValue(value = BackendJwtService.COOKIE_NAME, required = false) String sessionToken) {
+		return protectedPage(sessionToken, playPage, "gameplay");
 	}
 
 	private ResponseEntity<byte[]> protectedPage(String sessionToken, Resource page, String pageName) {
