@@ -502,7 +502,12 @@
         if (mobileControls) {
           mobileLandscapePending = true;
           enterFullscreenAndLockLandscape().catch(() => {
-            setStatus("The world is ready. Tap Fullscreen to enter landscape mode.");
+            if (document.fullscreenElement) {
+              mobileLandscapePending = false;
+              setStatus("Fullscreen is on. Rotate your phone to landscape if needed.");
+            } else {
+              setStatus("The world is ready.");
+            }
           });
         }
         resizeCanvas();
@@ -1330,8 +1335,13 @@
           }
           await enterFullscreenAndLockLandscape();
         } catch (error) {
-          mobileLandscapePending = mobileControls;
-          setStatus(error.message || "Could not enter fullscreen. Your browser may not allow it.", true);
+          const fullscreenActive = Boolean(document.fullscreenElement);
+          mobileLandscapePending = mobileControls && !fullscreenActive;
+          setStatus(fullscreenActive
+            ? "Fullscreen is on. Rotate your phone to landscape if needed."
+            : mobileControls
+              ? "Your browser blocked fullscreen. Use the Fullscreen button or rotate your phone."
+              : error.message || "Could not enter fullscreen. Your browser may not allow it.", true);
         }
       });
       document.addEventListener("fullscreenchange", () => {
