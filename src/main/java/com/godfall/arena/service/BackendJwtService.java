@@ -107,7 +107,8 @@ public class BackendJwtService {
 			}
 			byte[] suppliedSignature = DECODER.decode(parts[2]);
 			byte[] expectedSignature = sign(parts[0] + "." + parts[1]);
-			if (!MessageDigest.isEqual(expectedSignature, suppliedSignature)) {
+			if (!ENCODER.encodeToString(suppliedSignature).equals(parts[2])
+					|| !MessageDigest.isEqual(expectedSignature, suppliedSignature)) {
 				throw new InvalidSessionTokenException();
 			}
 

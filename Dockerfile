@@ -6,6 +6,6 @@ RUN mvn -B package
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
-COPY --from=build /workspace/target/demo-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=build /workspace/target/demo-*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["sh", "-c", "exec java -Dserver.port=${PORT:-8080} -jar /app/app.jar"]

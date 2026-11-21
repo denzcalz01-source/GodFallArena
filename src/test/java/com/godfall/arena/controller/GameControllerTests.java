@@ -257,8 +257,8 @@ class GameControllerTests {
 						"silver",
 						"calm",
 						1_800_000_000_000L,
-						1234.5,
-						876.25)));
+						null,
+						null)));
 		MockMvc api = MockMvcBuilders.standaloneSetup(
 				new AuthController(firebaseRestService, backendJwtService, false))
 				.build();
