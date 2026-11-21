@@ -51,6 +51,14 @@
       .minimap-canvas { width: 100%; height: 126px; display: block; background: #193b35; }
       .minimap-footer { display: flex; justify-content: space-between; gap: 8px; padding: 7px 9px; color: #b9c9bd; font-size: 0.54rem; }
       .inventory-panel { position: absolute; top: max(214px, calc(env(safe-area-inset-top) + 204px)); right: max(16px, env(safe-area-inset-right)); width: min(280px, 30vw); max-height: calc(100vh - 300px); overflow: auto; }
+      .skills-panel { position: absolute; top: max(214px, calc(env(safe-area-inset-top) + 204px)); left: 50%; width: min(320px, 38vw); max-height: min(440px, calc(100vh - 250px)); overflow: auto; transform: translateX(-50%); }
+      .skills-help { margin: 0; padding: 9px 11px; color: #aab9b2; font-size: 0.57rem; line-height: 1.45; }
+      .skills-list { display: grid; gap: 6px; padding: 0 10px 10px; }
+      .skill-choice { min-height: 42px; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 6px 9px; border: 1px solid rgba(156, 232, 231, 0.18); border-radius: 4px; background: rgba(255,255,255,0.035); color: #e6eee6; cursor: pointer; text-align: left; }
+      .skill-choice[aria-pressed="true"] { border-color: var(--gold); background: rgba(239, 189, 98, 0.12); }
+      .skill-icon { color: var(--gold); font-size: 1rem; text-align: center; }
+      .skill-name { font-size: 0.62rem; font-weight: 800; }
+      .skill-detail { color: #9eafa5; font-size: 0.52rem; white-space: nowrap; }
       .inventory-tabs { display: flex; gap: 5px; padding: 9px 10px 0; }
       .inventory-tab { flex: 1; min-height: 27px; border: 1px solid rgba(156, 232, 231, 0.17); border-radius: 3px; background: rgba(255,255,255,0.035); color: #aab9b2; font: inherit; font-size: 0.52rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
       .inventory-tab[aria-selected="true"] { border-color: rgba(239, 189, 98, 0.5); background: rgba(239, 189, 98, 0.12); color: #ffe0a2; }
@@ -61,10 +69,14 @@
       .inventory-slot { aspect-ratio: 1; font-size: 0.76rem; }
       .inventory-note { margin: 0; padding: 0 10px 10px; color: #8d9d95; font-size: 0.54rem; line-height: 1.5; }
       .action-bar { position: absolute; bottom: max(14px, env(safe-area-inset-bottom)); left: 50%; display: flex; gap: 5px; padding: 6px; border: 1px solid rgba(205, 215, 198, 0.35); border-radius: 6px; background: rgba(7, 14, 17, 0.88); box-shadow: 0 8px 26px rgba(0,0,0,0.4); transform: translateX(-50%); }
-      .action-slot { position: relative; width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid rgba(204, 218, 202, 0.24); border-radius: 4px; background: radial-gradient(circle at 45% 35%, rgba(156, 232, 231, 0.15), rgba(10, 21, 23, 0.94)); color: rgba(232, 238, 222, 0.55); font-size: 0.9rem; }
-      .action-slot span { position: absolute; right: 3px; bottom: 2px; color: #c5c6b8; font-size: 0.48rem; }
+      .action-slot { position: relative; width: 42px; height: 42px; display: grid; place-items: center; padding: 0; border: 1px solid rgba(204, 218, 202, 0.24); border-radius: 4px; background: radial-gradient(circle at 45% 35%, rgba(156, 232, 231, 0.15), rgba(10, 21, 23, 0.94)); color: rgba(232, 238, 222, 0.8); cursor: pointer; font: inherit; }
+      .action-slot:disabled { cursor: default; }
+      .slot-icon { font-size: 1rem; font-weight: 850; }
+      .action-slot .slot-key { position: absolute; right: 3px; bottom: 2px; color: #c5c6b8; font-size: 0.48rem; }
+      .action-slot[data-cooldown="true"] { border-color: rgba(240, 140, 98, 0.7); }
       .game-shell[data-inventory-open="false"] .inventory-panel, .game-shell[data-character-open="false"] .character-status-panel { display: none; }
-      .game-shell[data-inventory-open="true"] #inventory-toggle, .game-shell[data-character-open="true"] #character-toggle { border-color: var(--gold); color: #ffe6b0; }
+      .game-shell[data-inventory-open="true"] #inventory-toggle, .game-shell[data-character-open="true"] #character-toggle, .game-shell[data-skills-open="true"] #skills-toggle { border-color: var(--gold); color: #ffe6b0; }
+      .game-shell[data-skills-open="false"] .skills-panel { display: none; }
       .world-status { position: absolute; top: max(80px, calc(env(safe-area-inset-top) + 70px)); left: 50%; max-width: min(90vw, 600px); padding: 8px 12px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 5px; background: rgba(5, 13, 15, 0.76); color: #d3ded5; font-size: 0.65rem; line-height: 1.45; text-align: center; transform: translateX(-50%); pointer-events: none; }
       .world-status[data-state="error"] { border-color: rgba(255, 140, 151, 0.42); color: #ffd2d4; }
       .location-label { position: absolute; right: max(16px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); padding: 8px 12px; border: 1px solid rgba(239, 189, 98, 0.24); border-radius: 4px; background: rgba(5, 13, 15, 0.7); color: #ead9b4; font-size: 0.58rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; pointer-events: none; }
@@ -105,11 +117,148 @@
         .world-status { top: max(70px, calc(env(safe-area-inset-top) + 64px)); max-width: 44vw; left: 50%; font-size: 0.52rem; }
         .location-label { right: 10px; bottom: 115px; max-width: 42vw; font-size: 0.5rem; }
       }
+
+      @media (pointer: coarse) {
+        .game-hud { gap: 6px; padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left)); }
+        .player-panel { gap: 6px; padding: 6px 8px; }
+        .player-mark { width: 28px; height: 28px; flex-basis: 28px; }
+        .player-name { max-width: 24vw; font-size: 0.67rem; }
+        .player-class { font-size: 0.49rem; }
+        .vital-bars { gap: 3px; margin-top: 5px; }
+        .vital-bar { height: 4px; }
+        .online-count { padding: 6px 8px; font-size: 0.52rem; }
+        .hud-actions { flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+        .hud-button { min-height: 32px; padding: 0 8px; font-size: 0.48rem; }
+        .minimap-panel { top: max(57px, calc(env(safe-area-inset-top) + 50px)); right: 8px; width: clamp(112px, 17vw, 154px); }
+        .minimap-canvas { height: clamp(54px, 10vh, 78px); }
+        .minimap-footer { padding: 5px 6px; font-size: 0.46rem; }
+        .inventory-panel { top: max(58px, calc(env(safe-area-inset-top) + 52px)); right: 8px; width: min(240px, 38vw); max-height: calc(100dvh - 84px); }
+        .skills-panel { top: max(58px, calc(env(safe-area-inset-top) + 52px)); width: min(280px, 42vw); max-height: calc(100dvh - 84px); }
+        .character-status-panel { bottom: max(74px, calc(env(safe-area-inset-bottom) + 68px)); left: 8px; width: min(240px, 36vw); }
+        .character-sheet { grid-template-columns: 40px minmax(0, 1fr); gap: 7px; padding: 7px; }
+        .character-portrait { width: 40px; height: 48px; font-size: 0.9rem; }
+        .sheet-detail { margin-top: 5px; }
+        .action-bar { bottom: max(8px, env(safe-area-inset-bottom)); gap: 3px; padding: 4px; }
+        .action-slot { width: clamp(34px, 5vw, 40px); height: clamp(34px, 5vw, 40px); }
+        .controls { bottom: max(14px, env(safe-area-inset-bottom)); left: max(10px, env(safe-area-inset-left)); width: clamp(84px, 18vw, 108px); height: clamp(84px, 18vw, 108px); }
+        .joystick-thumb { width: 38px; height: 38px; }
+        .world-status { top: max(60px, calc(env(safe-area-inset-top) + 52px)); max-width: min(58vw, 400px); font-size: 0.52rem; }
+        .location-label { right: 8px; bottom: max(10px, env(safe-area-inset-bottom)); max-width: 28vw; padding: 6px 8px; font-size: 0.47rem; }
+      }
+
+      :root { --gold: #ffd17a; --cyan: #73f5e8; --ui-violet: #9a8cff; }
+      .player-panel, .online-count, .game-panel, .world-status, .location-label {
+        border-color: rgba(115, 245, 232, 0.24);
+        background: linear-gradient(145deg, rgba(10, 20, 34, 0.94), rgba(7, 13, 25, 0.9));
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), inset 0 1px rgba(255, 255, 255, 0.08), 0 0 20px rgba(80, 223, 239, 0.04);
+      }
+      .player-panel, .online-count, .game-panel, .world-status, .location-label, .hud-button, .action-bar {
+        border-radius: 9px;
+      }
+      .panel-heading, .target-panel-heading {
+        border-bottom-color: rgba(115, 245, 232, 0.18);
+        color: #bafaf1;
+        letter-spacing: 0.16em;
+      }
+      .hud-button {
+        border-color: rgba(115, 245, 232, 0.32);
+        background: linear-gradient(145deg, rgba(18, 38, 57, 0.95), rgba(8, 17, 29, 0.96));
+        box-shadow: inset 0 1px rgba(255, 255, 255, 0.08);
+        transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+      }
+      .hud-button:hover, .hud-button:focus-visible {
+        border-color: var(--cyan);
+        box-shadow: 0 0 18px rgba(115, 245, 232, 0.18);
+        transform: translateY(-1px);
+      }
+      .skills-panel, .inventory-panel, .character-status-panel, .minimap-panel {
+        border-color: rgba(115, 245, 232, 0.28);
+      }
+      .skill-choice {
+        border-color: rgba(115, 245, 232, 0.2);
+        border-radius: 8px;
+        background: linear-gradient(110deg, rgba(23, 42, 63, 0.76), rgba(10, 18, 32, 0.82));
+        transition: border-color 140ms ease, transform 140ms ease, background 140ms ease;
+      }
+      .skill-choice:hover, .skill-choice:focus-visible {
+        border-color: rgba(115, 245, 232, 0.72);
+        background: linear-gradient(110deg, rgba(25, 63, 78, 0.82), rgba(17, 27, 47, 0.9));
+        transform: translateX(2px);
+      }
+      .skill-choice[aria-pressed="true"] {
+        border-color: var(--gold);
+        box-shadow: 0 0 16px rgba(255, 209, 122, 0.12);
+      }
+      .action-bar {
+        border-color: rgba(115, 245, 232, 0.38);
+        background: linear-gradient(145deg, rgba(10, 22, 38, 0.96), rgba(5, 12, 23, 0.94));
+        box-shadow: 0 10px 32px rgba(0, 0, 0, 0.5), 0 0 22px rgba(78, 218, 234, 0.08);
+      }
+      .action-slot {
+        border-color: rgba(115, 245, 232, 0.3);
+        border-radius: 8px;
+        background: radial-gradient(circle at 50% 20%, rgba(115, 245, 232, 0.18), rgba(9, 20, 34, 0.96) 72%);
+        transition: border-color 130ms ease, box-shadow 130ms ease, transform 130ms ease;
+      }
+      .action-slot:hover, .action-slot:focus-visible {
+        border-color: var(--cyan);
+        box-shadow: 0 0 16px rgba(115, 245, 232, 0.2);
+        transform: translateY(-2px);
+      }
+      .action-slot[data-cooldown="true"] { border-color: #ff9879; }
+      .target-panel {
+        position: absolute;
+        right: max(16px, env(safe-area-inset-right));
+        bottom: max(76px, calc(env(safe-area-inset-bottom) + 70px));
+        width: min(250px, 30vw);
+        padding: 10px 12px 9px;
+        border: 1px solid rgba(115, 245, 232, 0.42);
+        border-radius: 10px;
+        background: linear-gradient(145deg, rgba(10, 24, 39, 0.96), rgba(7, 13, 26, 0.93));
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 0 24px rgba(87, 231, 228, 0.1);
+        pointer-events: none;
+      }
+      .target-panel[hidden] { display: none; }
+      .target-panel-heading, .target-panel-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 0.49rem;
+        font-weight: 850;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .target-panel-heading { padding-bottom: 7px; border-bottom: 1px solid rgba(115, 245, 232, 0.16); color: #b7c9dc; }
+      .target-signal { color: var(--cyan); font-size: 0.43rem; }
+      .target-panel-body { display: flex; align-items: center; gap: 10px; padding: 9px 0 8px; }
+      .target-emblem {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        flex: 0 0 34px;
+        place-items: center;
+        border: 1px solid rgba(255, 113, 127, 0.5);
+        border-radius: 8px;
+        background: linear-gradient(145deg, rgba(103, 39, 58, 0.64), rgba(25, 23, 43, 0.88));
+        color: #ff9ca6;
+        font-size: 1.15rem;
+      }
+      .target-copy { min-width: 0; display: grid; gap: 3px; }
+      .target-copy strong { overflow: hidden; color: #f1f7ff; font-size: 0.72rem; text-overflow: ellipsis; white-space: nowrap; }
+      .target-copy span { color: #8da7ba; font-size: 0.48rem; font-weight: 750; letter-spacing: 0.08em; text-transform: uppercase; }
+      .target-vitality { height: 5px; overflow: hidden; border-radius: 999px; background: rgba(255, 255, 255, 0.1); }
+      .target-vitality span { width: 100%; height: 100%; display: block; border-radius: inherit; background: linear-gradient(90deg, #f15168, #ffae83); transition: width 180ms ease; }
+      .target-panel-footer { padding-top: 6px; color: #71879a; font-size: 0.42rem; }
+      .target-panel-footer strong { color: #c7d7e5; font-size: 0.46rem; }
+      @media (max-width: 700px) {
+        .target-panel { right: max(8px, env(safe-area-inset-right)); bottom: max(68px, calc(env(safe-area-inset-bottom) + 64px)); width: min(208px, 58vw); padding: 8px 9px; }
+      }
     </style>
   </head>
   <body>
     <main class="game-shell">
-      <canvas id="world-canvas" aria-label="Top-down world. Move with WASD or the arrow keys, or use the touch joystick."></canvas>
+      <canvas id="world-canvas" aria-label="Top-down world. Move with WASD or the arrow keys, use the touch joystick, and click a monster to target it."></canvas>
       <canvas id="avatar-canvas" aria-hidden="true"></canvas>
 
       <header class="game-hud">
@@ -128,6 +277,7 @@
         <nav class="hud-actions" aria-label="World actions">
           <button class="hud-button" id="character-toggle" type="button" aria-controls="character-panel" aria-expanded="true">Character</button>
           <button class="hud-button" id="inventory-toggle" type="button" aria-controls="inventory-panel" aria-expanded="true">Inventory</button>
+          <button class="hud-button" id="skills-toggle" type="button" aria-controls="skills-panel" aria-expanded="false">Skills</button>
           <button class="hud-button" id="fullscreen-button" type="button">Fullscreen</button>
           <a class="hud-button" id="roster-link" href="/characters">Characters</a>
         </nav>
@@ -178,13 +328,47 @@
         </section>
       </aside>
 
-      <div class="action-bar" role="toolbar" aria-label="Prototype ability slots">
-        <div class="action-slot" aria-label="Ability slot 1 unavailable">◇<span>1</span></div>
-        <div class="action-slot" aria-label="Ability slot 2 unavailable">◇<span>2</span></div>
-        <div class="action-slot" aria-label="Ability slot 3 unavailable">◇<span>3</span></div>
-        <div class="action-slot" aria-label="Ability slot 4 unavailable">◇<span>4</span></div>
-        <div class="action-slot" aria-label="Ability slot 5 unavailable">◇<span>5</span></div>
-        <div class="action-slot" aria-label="Ability slot 6 unavailable">◇<span>6</span></div>
+      <aside class="game-panel skills-panel" id="skills-panel" aria-label="Character skills">
+        <div class="panel-heading">
+          <span>Skills</span>
+          <button class="panel-close" id="skills-close" type="button" aria-label="Close skills panel">×</button>
+        </div>
+        <p class="skills-help" id="skills-help">Assign skills to slots, then select a monster. Press a skill to approach and cast.</p>
+        <div class="skills-list" id="skills-list"></div>
+      </aside>
+
+      <aside class="target-panel" id="target-panel" aria-live="polite" hidden>
+        <div class="target-panel-heading"><span>Target lock</span><span class="target-signal">● LINKED</span></div>
+        <div class="target-panel-body">
+          <span class="target-emblem" aria-hidden="true">◇</span>
+          <div class="target-copy">
+            <strong id="target-name">Mossling</strong>
+            <span id="target-status">Select a monster</span>
+          </div>
+        </div>
+        <div class="target-vitality"><span id="target-health-bar"></span></div>
+        <div class="target-panel-footer"><span>VITALITY</span><strong id="target-health-text">--</strong></div>
+      </aside>
+
+      <div class="action-bar" id="action-bar" role="toolbar" aria-label="Character skill slots">
+        <button class="action-slot" type="button" data-action-slot="1" aria-label="Empty skill slot 1, press 1 to use">
+          <strong class="slot-icon">—</strong><span class="slot-key">1</span>
+        </button>
+        <button class="action-slot" type="button" data-action-slot="2" aria-label="Empty skill slot 2, press 2 to use">
+          <strong class="slot-icon">—</strong><span class="slot-key">2</span>
+        </button>
+        <button class="action-slot" type="button" data-action-slot="3" aria-label="Empty skill slot 3, press 3 to use">
+          <strong class="slot-icon">—</strong><span class="slot-key">3</span>
+        </button>
+        <button class="action-slot" type="button" data-action-slot="4" aria-label="Empty skill slot 4, press 4 to use">
+          <strong class="slot-icon">—</strong><span class="slot-key">4</span>
+        </button>
+        <button class="action-slot" type="button" data-action-slot="5" aria-label="Empty skill slot 5, press 5 to use">
+          <strong class="slot-icon">—</strong><span class="slot-key">5</span>
+        </button>
+        <button class="action-slot" type="button" data-action-slot="6" aria-label="Empty skill slot 6, press 6 to use">
+          <strong class="slot-icon">—</strong><span class="slot-key">6</span>
+        </button>
       </div>
 
       <div class="controls" id="virtual-joystick" role="group" aria-label="Touch joystick for movement">
@@ -216,6 +400,7 @@
         onValue,
         remove,
         ref,
+        runTransaction,
         serverTimestamp,
         set,
         update,
@@ -258,6 +443,35 @@
         ember: "#e76d50",
         violet: "#a98ae8",
       };
+      const skillsByClass = {
+        vanguard: [
+          { id: "vanguard_cleave", name: "Cleave", icon: "CL", damage: 22, range: 74, cooldown: 900, animation: "slash", color: "#efbd62" },
+          { id: "vanguard_bash", name: "Shield Bash", icon: "SB", damage: 30, range: 58, cooldown: 1500, animation: "impact", color: "#f08c62" },
+          { id: "vanguard_sweep", name: "Iron Sweep", icon: "IS", damage: 18, range: 96, cooldown: 2100, animation: "sweep", color: "#e6d396" },
+        ],
+        striker: [
+          { id: "striker_quickshot", name: "Quick Shot", icon: "QS", damage: 18, range: 220, cooldown: 700, animation: "projectile", color: "#f08c62" },
+          { id: "striker_dash", name: "Piercing Dash", icon: "PD", damage: 32, range: 110, cooldown: 1600, animation: "dash", color: "#efbd62" },
+          { id: "striker_volley", name: "Arrow Volley", icon: "AV", damage: 24, range: 180, cooldown: 2200, animation: "volley", color: "#d9c07c" },
+        ],
+        arcanist: [
+          { id: "arcanist_bolt", name: "Arcane Bolt", icon: "AB", damage: 20, range: 240, cooldown: 800, animation: "projectile", color: "#bca3ee" },
+          { id: "arcanist_nova", name: "Frost Nova", icon: "FN", damage: 34, range: 100, cooldown: 1800, animation: "nova", color: "#9ce8e7" },
+          { id: "arcanist_surge", name: "Aether Surge", icon: "AS", damage: 28, range: 200, cooldown: 2100, animation: "beam", color: "#e3a8ee" },
+        ],
+        warden: [
+          { id: "warden_thorn", name: "Thorn Shot", icon: "TS", damage: 19, range: 210, cooldown: 750, animation: "thorn", color: "#8fd4aa" },
+          { id: "warden_root", name: "Root Snare", icon: "RS", damage: 30, range: 120, cooldown: 1500, animation: "roots", color: "#a9c97e" },
+          { id: "warden_bloom", name: "Wild Bloom", icon: "WB", damage: 26, range: 170, cooldown: 2000, animation: "bloom", color: "#d6d782" },
+        ],
+      };
+      const skillsById = new Map(Object.values(skillsByClass).flat().map((skill) => [skill.id, skill]));
+      const monsterSpawnDefinitions = [
+        { id: "mossling-1", kind: "mossling", name: "Mossling", x: 1500, y: 1200, maxHealth: 60 },
+        { id: "mossling-2", kind: "mossling", name: "Mossling", x: 1710, y: 1270, maxHealth: 60 },
+        { id: "mossling-3", kind: "mossling", name: "Mossling", x: 1560, y: 1410, maxHealth: 60 },
+      ];
+      const monsterRespawnDelay = 12000;
       const world = { width: 3200, height: 2400 };
       const tabSessionId = typeof window.crypto.randomUUID === "function"
         ? window.crypto.randomUUID()
@@ -267,6 +481,8 @@
         y: 1200,
         targetX: 1600,
         targetY: 1200,
+        velocityX: 0,
+        velocityY: 0,
         name: "",
         classType: "",
         lineage: "",
@@ -283,19 +499,51 @@
       const joystickVector = { x: 0, y: 0 };
       const virtualJoystick = document.getElementById("virtual-joystick");
       const joystickThumb = document.getElementById("joystick-thumb");
+      const skillsToggle = document.getElementById("skills-toggle");
+      const skillsPanel = document.getElementById("skills-panel");
+      const skillsList = document.getElementById("skills-list");
+      const actionSlots = [...document.querySelectorAll("[data-action-slot]")];
+      const targetPanel = document.getElementById("target-panel");
+      const targetName = document.getElementById("target-name");
+      const targetStatus = document.getElementById("target-status");
+      const targetHealthBar = document.getElementById("target-health-bar");
+      const targetHealthText = document.getElementById("target-health-text");
       let currentUser = null;
       let selectedCharacter = null;
       let playerReference = null;
       let characterLocationReference = null;
+      let skillLoadoutReference = null;
+      let skillConfigurationReference = null;
+      let monsterRoomReference = null;
       let canWritePresence = false;
+      let canWriteMonsters = false;
       let canSaveLocation = true;
       let writePending = false;
       let locationWritePending = false;
       let lastPositionWrite = 0;
       let lastPresenceHeartbeat = 0;
       let lastLocationWrite = 0;
+      let lastPresenceX = null;
+      let lastPresenceY = null;
       let savedLocation = null;
       let sessionMonitorId = null;
+      let pendingSkillId = null;
+      let selectedMonsterId = null;
+      let pendingSkillCast = null;
+      let monsterSyncError = "";
+      let skillConfigurationError = "";
+      let lastMonsterRespawnCheck = 0;
+      let lastSkillHudUpdate = 0;
+      let lastMinimapUpdate = 0;
+      let lastLocationUpdate = 0;
+      let currentLocationName = "";
+      const equippedSkills = {};
+      const skillCooldowns = new Map();
+      const skillCooldownOverrides = new Map();
+      const monsterStates = new Map();
+      const monsterModels = new Map();
+      const skillEffects = [];
+      const skillUseIndicators = new Map();
       let lastFrameTime = 0;
       let worldStarted = false;
       let snapRemotePlayersOnNextUpdate = false;
@@ -308,11 +556,13 @@
       const avatarModels = new Map();
 
       const mobileControls = window.matchMedia("(pointer: coarse)").matches;
-      const compactLayout = window.matchMedia("(max-width: 700px)").matches;
+      const compactLayout = mobileControls || window.matchMedia("(max-width: 700px)").matches;
       gameShell.dataset.inventoryOpen = String(!compactLayout);
       gameShell.dataset.characterOpen = String(!compactLayout);
+      gameShell.dataset.skillsOpen = "false";
       inventoryToggle.setAttribute("aria-expanded", String(!compactLayout));
       characterToggle.setAttribute("aria-expanded", String(!compactLayout));
+      skillsToggle.setAttribute("aria-expanded", "false");
 
       function setStatus(message, isError = false) {
         currentStatusMessage = message;
@@ -350,7 +600,7 @@
             antialias: true,
             powerPreference: "low-power",
           });
-          avatarRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          avatarRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, mobileControls ? 1 : 1.5));
           avatarRenderer.setClearColor(0x000000, 0);
           avatarScene = new THREE.Scene();
           avatarScene.add(new THREE.HemisphereLight(0xffecd0, 0x263b45, 2.2));
@@ -384,7 +634,9 @@
 
       function setPanelOpen(panelName, isOpen) {
         gameShell.dataset[panelName] = String(isOpen);
-        const toggle = panelName === "inventoryOpen" ? inventoryToggle : characterToggle;
+        const toggle = panelName === "inventoryOpen"
+          ? inventoryToggle
+          : panelName === "skillsOpen" ? skillsToggle : characterToggle;
         toggle.setAttribute("aria-expanded", String(isOpen));
       }
 
@@ -394,9 +646,170 @@
       characterToggle.addEventListener("click", () => {
         setPanelOpen("characterOpen", gameShell.dataset.characterOpen !== "true");
       });
+      skillsToggle.addEventListener("click", () => {
+        setPanelOpen("skillsOpen", gameShell.dataset.skillsOpen !== "true");
+      });
+      document.getElementById("skills-close").addEventListener("click", () => {
+        setPanelOpen("skillsOpen", false);
+      });
       document.querySelectorAll("[data-close-panel]").forEach((button) => {
         button.addEventListener("click", () => setPanelOpen(button.dataset.closePanel, false));
       });
+
+      function renderSkillBook() {
+        skillsList.replaceChildren();
+        const choices = [
+          { id: "__clear__", name: "Clear a slot", icon: "×", detail: "Remove skill" },
+          ...(skillsByClass[selectedCharacter?.classType] || []).map((skill) => ({
+            ...skill,
+            detail: `${skill.damage} dmg · ${getSkillCooldownMs(skill) / 1000}s`,
+          })),
+        ];
+        for (const skill of choices) {
+          const button = document.createElement("button");
+          button.className = "skill-choice";
+          button.type = "button";
+          button.draggable = skill.id !== "__clear__";
+          button.dataset.skillId = skill.id;
+          button.setAttribute("aria-pressed", "false");
+          button.innerHTML = `<span class="skill-icon"></span><span class="skill-name"></span><span class="skill-detail"></span>`;
+          button.querySelector(".skill-icon").textContent = skill.icon;
+          button.querySelector(".skill-name").textContent = skill.name;
+          button.querySelector(".skill-detail").textContent = skill.detail;
+          skillsList.append(button);
+        }
+      }
+
+      function getSkillCooldownMs(skill) {
+        const configuredCooldown = skillCooldownOverrides.get(skill.id);
+        return Number.isInteger(configuredCooldown) && configuredCooldown >= 250 && configuredCooldown <= 120000
+          ? configuredCooldown
+          : skill.cooldown;
+      }
+
+      function renderActionSlots() {
+        for (const button of actionSlots) {
+          const slot = button.dataset.actionSlot;
+          const skill = skillsById.get(equippedSkills[slot]);
+          const cooldownUntil = skillCooldowns.get(skill?.id) || 0;
+          const remaining = Math.max(0, cooldownUntil - Date.now());
+          button.querySelector(".slot-icon").textContent = skill?.icon || "—";
+          button.querySelector(".slot-key").textContent = remaining > 0
+            ? (remaining / 1000).toFixed(1)
+            : slot;
+          button.dataset.cooldown = String(remaining > 0);
+          button.setAttribute("aria-label", skill
+            ? `Skill slot ${slot}: ${skill.name}${remaining > 0 ? `, cooldown ${(remaining / 1000).toFixed(1)} seconds` : ", ready"}`
+            : `Empty skill slot ${slot}`);
+        }
+      }
+
+      function renderTargetPanel() {
+        const target = selectedMonsterId ? monsterStates.get(selectedMonsterId) : null;
+        if (!target) {
+          targetPanel.hidden = true;
+          return;
+        }
+        targetPanel.hidden = false;
+        targetName.textContent = target.name;
+        const distance = Math.round(Math.hypot(target.x - localPlayer.x, target.y - localPlayer.y));
+        const pendingSkill = pendingSkillCast ? skillsById.get(pendingSkillCast.skillId) : null;
+        targetStatus.textContent = target.health <= 0
+          ? "RESPAWNING"
+          : pendingSkillCast?.monsterId === target.id && pendingSkill
+            ? `APPROACHING · ${pendingSkill.name}`
+            : `TARGET LOCKED · ${distance}U`;
+        targetHealthBar.style.width = `${Math.max(0, Math.min(100, target.health / target.maxHealth * 100))}%`;
+        targetHealthText.textContent = `${Math.max(0, Math.ceil(target.health))} / ${target.maxHealth} HP`;
+      }
+
+      function selectMonsterAtPointer(event) {
+        const bounds = canvas.getBoundingClientRect();
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        const cameraX = Math.max(width / 2, Math.min(world.width - width / 2, localPlayer.x));
+        const cameraY = Math.max(height / 2, Math.min(world.height - height / 2, localPlayer.y));
+        const worldX = event.clientX - bounds.left - width / 2 + cameraX;
+        const worldY = event.clientY - bounds.top - height / 2 + cameraY;
+        const selectionRadius = mobileControls ? 58 : 40;
+        const target = [...monsterStates.values()]
+          .filter((monster) => monster.health > 0)
+          .map((monster) => ({ monster, distance: Math.hypot(monster.x - worldX, monster.y - worldY) }))
+          .filter((entry) => entry.distance <= selectionRadius)
+          .sort((left, right) => left.distance - right.distance)[0]?.monster;
+
+        pendingSkillCast = null;
+        selectedMonsterId = target?.id || null;
+        renderTargetPanel();
+        setStatus(target
+          ? `${target.name} targeted. Press a skill to attack.`
+          : "Target lock cleared.");
+      }
+
+      function selectSkillForAssignment(skillId) {
+        pendingSkillId = skillId;
+        skillsList.querySelectorAll("[data-skill-id]").forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.skillId === skillId));
+        });
+        document.getElementById("skills-help").textContent = skillId === "__clear__"
+          ? "Tap a hotbar slot to clear it."
+          : "Tap a hotbar slot to assign this skill. Select a monster to auto-approach and cast.";
+      }
+
+      function assignSkillToSlot(slot, skillId) {
+        if (!skillLoadoutReference) {
+          setStatus("The skill loadout is not connected yet.", true);
+          return;
+        }
+        const previousLoadout = { ...equippedSkills };
+        if (skillId === "__clear__") {
+          delete equippedSkills[slot];
+        } else if (skillsByClass[selectedCharacter?.classType]?.some((skill) => skill.id === skillId)) {
+          equippedSkills[slot] = skillId;
+        } else {
+          setStatus("That skill does not belong to this character's class.", true);
+          return;
+        }
+        pendingSkillId = null;
+        selectSkillForAssignment(null);
+        renderActionSlots();
+        set(skillLoadoutReference, { ...equippedSkills }).catch((error) => {
+          for (const key of Object.keys(equippedSkills)) delete equippedSkills[key];
+          Object.assign(equippedSkills, previousLoadout);
+          renderActionSlots();
+          setStatus(`Could not save this skill loadout: ${error.message || "Check Firebase rules."}`, true);
+        });
+        document.getElementById("skills-help").textContent =
+          "Skill slots are saved to this character. Select a monster, then press a slot to approach and cast.";
+      }
+
+      skillsList.addEventListener("click", (event) => {
+        const choice = event.target.closest("[data-skill-id]");
+        if (choice) selectSkillForAssignment(choice.dataset.skillId);
+      });
+      skillsList.addEventListener("dragstart", (event) => {
+        const choice = event.target.closest("[data-skill-id]");
+        if (!choice || choice.dataset.skillId === "__clear__") return;
+        event.dataTransfer.setData("text/plain", choice.dataset.skillId);
+        selectSkillForAssignment(choice.dataset.skillId);
+      });
+      actionSlots.forEach((button) => {
+        button.addEventListener("click", () => {
+          const slot = button.dataset.actionSlot;
+          if (pendingSkillId !== null) {
+            assignSkillToSlot(slot, pendingSkillId);
+          } else {
+            activateSkillSlot(slot);
+          }
+        });
+        button.addEventListener("dragover", (event) => event.preventDefault());
+        button.addEventListener("drop", (event) => {
+          event.preventDefault();
+          const skillId = event.dataTransfer.getData("text/plain");
+          if (skillId) assignSkillToSlot(button.dataset.actionSlot, skillId);
+        });
+      });
+      canvas.addEventListener("click", selectMonsterAtPointer);
 
       document.querySelectorAll(".inventory-tab").forEach((tab) => {
         tab.addEventListener("click", () => {
@@ -495,6 +908,128 @@
         };
       }
 
+      function listenForSkillLoadout() {
+        onValue(skillLoadoutReference, (snapshot) => {
+          for (const slot of Object.keys(equippedSkills)) delete equippedSkills[slot];
+          const savedSlots = snapshot.val() || {};
+          for (const slot of ["1", "2", "3", "4", "5", "6"]) {
+            const skillId = savedSlots[slot];
+            if (skillsByClass[selectedCharacter.classType]?.some((skill) => skill.id === skillId)) {
+              equippedSkills[slot] = skillId;
+            }
+          }
+          renderActionSlots();
+        }, (error) => {
+          setStatus(`Could not load this character's skill slots: ${error.message || "Check Firebase rules."}`, true);
+        });
+      }
+
+      function listenForSkillConfiguration() {
+        onValue(skillConfigurationReference, (snapshot) => {
+          skillCooldownOverrides.clear();
+          const configuration = snapshot.val() || {};
+          for (const [skillId, skill] of skillsById) {
+            const cooldownMs = configuration[skillId]?.cooldownMs;
+            if (Number.isInteger(cooldownMs) && cooldownMs >= 250 && cooldownMs <= 120000) {
+              skillCooldownOverrides.set(skillId, cooldownMs);
+            }
+          }
+          skillConfigurationError = "";
+          renderSkillBook();
+          renderActionSlots();
+          updateOnlineStatus();
+        }, (error) => {
+          skillConfigurationError = error.message || "Check Firebase rules.";
+          console.error("Could not load skill cooldown configuration; using defaults.", error);
+          updateOnlineStatus();
+        });
+      }
+
+      async function connectToSharedMonsters() {
+        await Promise.all(monsterSpawnDefinitions.map((spawn) => runTransaction(
+          ref(database, `worldMonsters/${selectedCharacter.serverId}/${spawn.id}`),
+          (existing) => {
+            if (existing) return;
+            return {
+              id: spawn.id,
+              kind: spawn.kind,
+              name: spawn.name,
+              x: spawn.x,
+              y: spawn.y,
+              maxHealth: spawn.maxHealth,
+              health: spawn.maxHealth,
+              respawnAt: 0,
+            };
+          },
+        )));
+        canWriteMonsters = true;
+        monsterSyncError = "";
+        onValue(monsterRoomReference, (snapshot) => {
+          const storedMonsters = snapshot.val() || {};
+          for (const spawn of monsterSpawnDefinitions) {
+            const stored = storedMonsters[spawn.id];
+            if (
+              !stored
+              || stored.kind !== spawn.kind
+              || !Number.isFinite(stored.x)
+              || !Number.isFinite(stored.y)
+              || !Number.isFinite(stored.health)
+              || !Number.isFinite(stored.maxHealth)
+            ) {
+              monsterStates.delete(spawn.id);
+              continue;
+            }
+            const previousMonster = monsterStates.get(spawn.id);
+            const attack = stored.lastAttack;
+            if (attack && attack.id !== previousMonster?.lastAttackId) {
+              const skill = skillsById.get(attack.skillId);
+              const attackAge = Date.now() - attack.usedAt;
+              if (
+                skill
+                && Number.isFinite(attack.startX)
+                && Number.isFinite(attack.startY)
+                && attackAge >= -1000
+                && attackAge <= 3000
+              ) {
+                skillEffects.push({
+                  animation: skill.animation,
+                  startX: attack.startX,
+                  startY: attack.startY,
+                  endX: stored.x,
+                  endY: stored.y,
+                  color: skill.color,
+                  startedAt: performance.now(),
+                  duration: 620,
+                });
+                if (typeof attack.attackerUid === "string" && typeof attack.sessionId === "string") {
+                  skillUseIndicators.set(`${attack.attackerUid}:${attack.sessionId}`, {
+                    skillId: skill.id,
+                    expiresAt: performance.now() + 1200,
+                  });
+                }
+              }
+            }
+            monsterStates.set(spawn.id, {
+              ...spawn,
+              x: stored.x,
+              y: stored.y,
+              health: stored.health,
+              maxHealth: stored.maxHealth,
+              respawnAt: Number.isFinite(stored.respawnAt) ? stored.respawnAt : 0,
+              hitUntil: previousMonster?.health > stored.health
+                ? performance.now() + 260
+                : previousMonster?.hitUntil || 0,
+              lastAttackId: stored.lastAttack?.id || null,
+            });
+          }
+        }, (error) => {
+          canWriteMonsters = false;
+          monsterSyncError = error.message || "Check Firebase rules.";
+          console.error("Could not read shared monsters for this realm.", error);
+          updateOnlineStatus();
+        });
+      }
+
       function startWorld() {
         if (worldStarted) return;
         worldStarted = true;
@@ -524,10 +1059,23 @@
         const roomReference = ref(database, `worldPlayers/${selectedCharacter.serverId}`);
         playerReference = ref(database, `worldPlayers/${selectedCharacter.serverId}/${currentUser.uid}/${tabSessionId}`);
         characterLocationReference = ref(database, `characters/${currentUser.uid}/${selectedCharacter.id}`);
+        skillLoadoutReference = ref(database, `characterSkillSlots/${currentUser.uid}/${selectedCharacter.id}`);
+        skillConfigurationReference = ref(database, "gameConfig/skills");
+        monsterRoomReference = ref(database, `worldMonsters/${selectedCharacter.serverId}`);
         await onDisconnect(playerReference).remove();
         await set(playerReference, playerRecord());
+        lastPresenceX = localPlayer.x;
+        lastPresenceY = localPlayer.y;
         canWritePresence = true;
         startBackendSessionMonitor();
+        listenForSkillLoadout();
+        listenForSkillConfiguration();
+        connectToSharedMonsters().catch((error) => {
+          canWriteMonsters = false;
+          monsterSyncError = error.message || "Check Firebase rules.";
+          console.error("Could not initialize shared monsters for this realm.", error);
+          updateOnlineStatus();
+        });
         onValue(roomReference, (snapshot) => {
           const roomPlayers = snapshot.val() || {};
           const onlineIds = new Set();
@@ -559,7 +1107,10 @@
                 existing.hairStyle = player.hairStyle;
                 existing.hairColor = player.hairColor;
                 existing.faceStyle = player.faceStyle;
-                existing.lastSeenAt = now;
+                if (player.updatedAt !== existing.updatedAt) {
+                  existing.updatedAt = player.updatedAt;
+                  existing.lastSeenAt = now;
+                }
               } else {
                 remotePlayers.set(playerKey, {
                   x: player.x,
@@ -576,6 +1127,7 @@
                   moving: false,
                   facingX: 0,
                   facingY: -1,
+                  updatedAt: player.updatedAt,
                   lastSeenAt: now,
                 });
               }
@@ -596,9 +1148,13 @@
       function updateOnlineStatus() {
         const count = remotePlayers.size + 1;
         onlineCount.textContent = `${count} adventurer${count === 1 ? "" : "s"} online`;
-        setStatus(count === 1
+        const worldMessage = count === 1
           ? "You are the only adventurer online in this realm."
-          : `Live world connected · ${count} adventurers in this realm.`);
+          : `Live world connected · ${count} adventurers in this realm.`;
+        const warnings = [];
+        if (monsterSyncError) warnings.push(`Shared monsters unavailable: ${monsterSyncError}`);
+        if (skillConfigurationError) warnings.push(`Using default skill cooldowns: ${skillConfigurationError}`);
+        setStatus(warnings.length ? `${worldMessage} ${warnings.join(" ")}` : worldMessage, warnings.length > 0);
       }
 
       function startBackendSessionMonitor() {
@@ -629,7 +1185,7 @@
 
       function resizeCanvas() {
         const bounds = canvas.getBoundingClientRect();
-        const scale = Math.min(window.devicePixelRatio || 1, 2);
+        const scale = Math.min(window.devicePixelRatio || 1, mobileControls ? 1 : 1.5);
         canvas.width = Math.max(1, Math.round(bounds.width * scale));
         canvas.height = Math.max(1, Math.round(bounds.height * scale));
         context.setTransform(scale, 0, 0, scale, 0, 0);
@@ -642,46 +1198,119 @@
         return ((value ^ (value >>> 16)) >>> 0) / 4294967295;
       }
 
-      function drawTree(x, y, size, tint) {
-        context.fillStyle = "rgba(3, 18, 17, 0.25)";
-        context.beginPath();
-        context.ellipse(x + 5, y + size * 0.35, size * 0.78, size * 0.42, 0, 0, Math.PI * 2);
-        context.fill();
-        context.fillStyle = "#573e2b";
-        context.fillRect(x - size * 0.12, y, size * 0.24, size * 0.68);
-        context.fillStyle = tint;
-        context.beginPath();
-        context.arc(x, y - size * 0.12, size * 0.62, 0, Math.PI * 2);
-        context.arc(x - size * 0.35, y + size * 0.08, size * 0.43, 0, Math.PI * 2);
-        context.arc(x + size * 0.34, y + size * 0.08, size * 0.44, 0, Math.PI * 2);
-        context.fill();
-        context.fillStyle = "rgba(178, 209, 137, 0.25)";
-        context.beginPath();
-        context.arc(x - size * 0.14, y - size * 0.3, size * 0.2, 0, Math.PI * 2);
-        context.fill();
+      const worldChunkSize = 512;
+      const worldChunkCache = new Map();
+
+      function drawTree(targetContext, x, y, size, tint) {
+        targetContext.fillStyle = "rgba(3, 18, 17, 0.25)";
+        targetContext.beginPath();
+        targetContext.ellipse(x + 5, y + size * 0.35, size * 0.78, size * 0.42, 0, 0, Math.PI * 2);
+        targetContext.fill();
+        targetContext.fillStyle = "#573e2b";
+        targetContext.fillRect(x - size * 0.12, y, size * 0.24, size * 0.68);
+        targetContext.fillStyle = tint;
+        targetContext.beginPath();
+        targetContext.arc(x, y - size * 0.12, size * 0.62, 0, Math.PI * 2);
+        targetContext.arc(x - size * 0.35, y + size * 0.08, size * 0.43, 0, Math.PI * 2);
+        targetContext.arc(x + size * 0.34, y + size * 0.08, size * 0.44, 0, Math.PI * 2);
+        targetContext.fill();
+        targetContext.fillStyle = "rgba(178, 209, 137, 0.25)";
+        targetContext.beginPath();
+        targetContext.arc(x - size * 0.14, y - size * 0.3, size * 0.2, 0, Math.PI * 2);
+        targetContext.fill();
+      }
+
+      function getWorldChunk(chunkX, chunkY) {
+        const key = `${chunkX}:${chunkY}`;
+        if (worldChunkCache.has(key)) {
+          const cached = worldChunkCache.get(key);
+          worldChunkCache.delete(key);
+          worldChunkCache.set(key, cached);
+          return cached;
+        }
+
+        const chunkCanvas = document.createElement("canvas");
+        chunkCanvas.width = worldChunkSize;
+        chunkCanvas.height = worldChunkSize;
+        const chunkContext = chunkCanvas.getContext("2d");
+        if (!chunkContext) throw new Error("Could not create a world scenery cache.");
+        const originX = chunkX * worldChunkSize;
+        const originY = chunkY * worldChunkSize;
+        chunkContext.save();
+        chunkContext.translate(-originX, -originY);
+        chunkContext.fillStyle = "#183c3a";
+        chunkContext.fillRect(originX, originY, worldChunkSize, worldChunkSize);
+
+        const tileSize = 72;
+        const startTileX = Math.max(0, Math.floor(originX / tileSize));
+        const endTileX = Math.min(Math.ceil(world.width / tileSize), Math.ceil((originX + worldChunkSize) / tileSize));
+        const startTileY = Math.max(0, Math.floor(originY / tileSize));
+        const endTileY = Math.min(Math.ceil(world.height / tileSize), Math.ceil((originY + worldChunkSize) / tileSize));
+        for (let tileY = startTileY; tileY < endTileY; tileY += 1) {
+          for (let tileX = startTileX; tileX < endTileX; tileX += 1) {
+            const shade = hashGrid(tileX, tileY);
+            chunkContext.fillStyle = shade > 0.5 ? "#244a3a" : "#214635";
+            chunkContext.fillRect(tileX * tileSize, tileY * tileSize, tileSize, tileSize);
+            if (shade > 0.84) {
+              chunkContext.fillStyle = "rgba(181, 194, 115, 0.17)";
+              chunkContext.beginPath();
+              chunkContext.arc(tileX * tileSize + 18 + shade * 22, tileY * tileSize + 20, 2.2, 0, Math.PI * 2);
+              chunkContext.fill();
+            }
+          }
+        }
+
+        const startTreeX = Math.max(0, Math.floor((originX - 64) / 90));
+        const endTreeX = Math.min(Math.ceil(world.width / 90), Math.ceil((originX + worldChunkSize + 64) / 90));
+        const startTreeY = Math.max(0, Math.floor((originY - 64) / 90));
+        const endTreeY = Math.min(Math.ceil(world.height / 90), Math.ceil((originY + worldChunkSize + 64) / 90));
+        for (let tileY = startTreeY; tileY < endTreeY; tileY += 1) {
+          for (let tileX = startTreeX; tileX < endTreeX; tileX += 1) {
+            const shade = hashGrid(tileX + 47, tileY - 19);
+            if (shade > 0.76) {
+              const tint = shade > 0.92 ? "#376b48" : "#315c42";
+              drawTree(
+                chunkContext,
+                tileX * 90 + 28 + shade * 31,
+                tileY * 90 + 24 + hashGrid(tileY, tileX) * 32,
+                25 + shade * 17,
+                tint,
+              );
+            }
+          }
+        }
+        chunkContext.restore();
+        worldChunkCache.set(key, chunkCanvas);
+        if (worldChunkCache.size > 20) {
+          const oldestKey = worldChunkCache.keys().next().value;
+          const oldestCanvas = worldChunkCache.get(oldestKey);
+          oldestCanvas.width = 0;
+          oldestCanvas.height = 0;
+          worldChunkCache.delete(oldestKey);
+        }
+        return chunkCanvas;
+      }
+
+      function drawCachedWorld(cameraX, cameraY, width, height) {
+        const startChunkX = Math.max(0, Math.floor((cameraX - width / 2) / worldChunkSize));
+        const endChunkX = Math.min(Math.ceil(world.width / worldChunkSize), Math.ceil((cameraX + width / 2) / worldChunkSize));
+        const startChunkY = Math.max(0, Math.floor((cameraY - height / 2) / worldChunkSize));
+        const endChunkY = Math.min(Math.ceil(world.height / worldChunkSize), Math.ceil((cameraY + height / 2) / worldChunkSize));
+        for (let chunkY = startChunkY; chunkY < endChunkY; chunkY += 1) {
+          for (let chunkX = startChunkX; chunkX < endChunkX; chunkX += 1) {
+            context.drawImage(
+              getWorldChunk(chunkX, chunkY),
+              chunkX * worldChunkSize,
+              chunkY * worldChunkSize,
+            );
+          }
+        }
       }
 
       function drawWorld(cameraX, cameraY, width, height) {
         context.fillStyle = "#183c3a";
         context.fillRect(0, 0, world.width, world.height);
-        const tileSize = 72;
-        const startX = Math.max(0, Math.floor((cameraX - width / 2) / tileSize));
-        const endX = Math.min(Math.ceil(world.width / tileSize), Math.ceil((cameraX + width / 2) / tileSize) + 1);
-        const startY = Math.max(0, Math.floor((cameraY - height / 2) / tileSize));
-        const endY = Math.min(Math.ceil(world.height / tileSize), Math.ceil((cameraY + height / 2) / tileSize) + 1);
-        for (let tileY = startY; tileY < endY; tileY += 1) {
-          for (let tileX = startX; tileX < endX; tileX += 1) {
-            const shade = hashGrid(tileX, tileY);
-            context.fillStyle = shade > 0.5 ? "#244a3a" : "#214635";
-            context.fillRect(tileX * tileSize, tileY * tileSize, tileSize, tileSize);
-            if (shade > 0.84) {
-              context.fillStyle = "rgba(181, 194, 115, 0.17)";
-              context.beginPath();
-              context.arc(tileX * tileSize + 18 + shade * 22, tileY * tileSize + 20, 2.2, 0, Math.PI * 2);
-              context.fill();
-            }
-          }
-        }
+        drawCachedWorld(cameraX, cameraY, width, height);
 
         context.lineCap = "round";
         context.beginPath();
@@ -714,20 +1343,6 @@
           context.strokeStyle = "rgba(181, 235, 218, 0.42)";
           context.lineWidth = 3;
           context.stroke();
-        }
-
-        const treeStartX = Math.max(0, Math.floor((cameraX - width / 2) / 90));
-        const treeEndX = Math.min(Math.ceil(world.width / 90), Math.ceil((cameraX + width / 2) / 90) + 1);
-        const treeStartY = Math.max(0, Math.floor((cameraY - height / 2) / 90));
-        const treeEndY = Math.min(Math.ceil(world.height / 90), Math.ceil((cameraY + height / 2) / 90) + 1);
-        for (let tileY = treeStartY; tileY < treeEndY; tileY += 1) {
-          for (let tileX = treeStartX; tileX < treeEndX; tileX += 1) {
-            const shade = hashGrid(tileX + 47, tileY - 19);
-            if (shade > 0.76) {
-              const tint = shade > 0.92 ? "#376b48" : "#315c42";
-              drawTree(tileX * 90 + 28 + shade * 31, tileY * 90 + 24 + hashGrid(tileY, tileX) * 32, 25 + shade * 17, tint);
-            }
-          }
         }
 
         drawLandmark(835, 870, "Mosslight Camp");
@@ -872,6 +1487,361 @@
         };
       }
 
+      function createMonsterModel(monster) {
+        const group = new THREE.Group();
+        const bodyMaterial = new THREE.MeshStandardMaterial({ color: "#5c9d63", roughness: 0.9 });
+        bodyMaterial.emissive = new THREE.Color("#000000");
+        const bellyMaterial = new THREE.MeshStandardMaterial({ color: "#a9c97e", roughness: 0.95 });
+        const hornMaterial = new THREE.MeshStandardMaterial({ color: "#dbc98f", roughness: 0.72 });
+        const eyeMaterial = new THREE.MeshStandardMaterial({ color: "#251e18", roughness: 0.65 });
+        const materials = [bodyMaterial, bellyMaterial, hornMaterial, eyeMaterial];
+        const addMesh = (geometry, material, x, y, z, scaleX = 1, scaleY = 1, scaleZ = 1) => {
+          const mesh = new THREE.Mesh(geometry, material);
+          mesh.position.set(x, y, z);
+          mesh.scale.set(scaleX, scaleY, scaleZ);
+          group.add(mesh);
+          return mesh;
+        };
+        const body = addMesh(new THREE.SphereGeometry(12, 10, 7), bodyMaterial, 0, 11, 0, 1.15, 0.9, 0.92);
+        addMesh(new THREE.SphereGeometry(7, 8, 6), bellyMaterial, 0, 8, 8, 1.1, 0.76, 0.55);
+        for (const side of [-1, 1]) {
+          addMesh(new THREE.ConeGeometry(3.1, 8, 6), hornMaterial, side * 7.5, 23, -1, 0.8, 1, 0.8)
+            .rotation.z = side * -0.3;
+          addMesh(new THREE.SphereGeometry(1.7, 6, 5), eyeMaterial, side * 4.1, 14, 10);
+        }
+        const legs = [];
+        const arms = [];
+        for (const side of [-1, 1]) {
+          const leg = new THREE.Group();
+          leg.position.set(side * 6.5, 5, 0);
+          group.add(leg);
+          const foot = new THREE.Mesh(new THREE.SphereGeometry(4.2, 7, 5), bodyMaterial);
+          foot.position.set(side * 1.5, -1.2, 1);
+          foot.scale.set(1, 0.65, 1.2);
+          leg.add(foot);
+          legs.push(leg);
+
+          const arm = new THREE.Group();
+          arm.position.set(side * 9.5, 12, 0);
+          group.add(arm);
+          const paw = new THREE.Mesh(new THREE.SphereGeometry(3.4, 7, 5), bodyMaterial);
+          paw.position.set(side * 2, -2, 1);
+          paw.scale.set(1, 0.75, 0.9);
+          arm.add(paw);
+          arms.push(arm);
+        }
+        return { group, body, bodyMaterial, legs, arms, materials, name: monster.name };
+      }
+
+      function drawMonster(monster, time) {
+        if (monster.health <= 0) return;
+        if (monster.id === selectedMonsterId) {
+          const pulse = 1 + Math.sin(time * 0.006) * 0.08;
+          context.save();
+          context.globalAlpha = 0.82;
+          context.strokeStyle = "#73f5e8";
+          context.lineWidth = 2;
+          context.setLineDash([5, 4]);
+          context.beginPath();
+          context.ellipse(monster.x, monster.y + 5, 23 * pulse, 10 * pulse, 0, 0, Math.PI * 2);
+          context.stroke();
+          context.setLineDash([]);
+          context.restore();
+        }
+        if (!avatarRenderer) {
+          const bob = Math.sin(time * 0.004 + monster.x) * 1.5;
+          context.fillStyle = monster.hitUntil > time ? "#d9c07c" : "#5c9d63";
+          context.beginPath();
+          context.ellipse(monster.x, monster.y - 7 + bob, 12, 10, 0, 0, Math.PI * 2);
+          context.fill();
+          context.fillStyle = "#251e18";
+          context.fillRect(monster.x - 4, monster.y - 10 + bob, 2, 2);
+          context.fillRect(monster.x + 2, monster.y - 10 + bob, 2, 2);
+        }
+        context.fillStyle = "rgba(5, 13, 15, 0.78)";
+        context.fillRect(monster.x - 18, monster.y - 38, 36, 5);
+        context.fillStyle = "#b84d4d";
+        context.fillRect(monster.x - 17, monster.y - 37, 34, 3);
+        context.fillStyle = "#8fd4aa";
+        context.fillRect(monster.x - 17, monster.y - 37, 34 * Math.max(0, monster.health / monster.maxHealth), 3);
+        context.font = "700 9px Inter, Segoe UI, sans-serif";
+        context.textAlign = "center";
+        context.fillStyle = "#d9f0cf";
+        context.fillText(`${monster.name} · ${Math.ceil(monster.health)}`, monster.x, monster.y - 42);
+      }
+
+      function updateMonsterModels(time) {
+        for (const monster of monsterStates.values()) {
+          let model = monsterModels.get(monster.id);
+          if (!model) {
+            model = createMonsterModel(monster);
+            monsterModels.set(monster.id, model);
+            avatarScene.add(model.group);
+          }
+          model.group.visible = monster.health > 0;
+          const idle = Math.sin(time * 0.003 + monster.x);
+          const hit = monster.hitUntil > time;
+          const gait = Math.sin(time * 0.007 + monster.y);
+          model.group.position.set(monster.x, -monster.y + Math.abs(idle) * 1.5, 0);
+          model.group.rotation.z = Math.sin(time * 0.0014 + monster.y) * 0.045;
+          model.body.scale.set(1.15 * (hit ? 1.12 : 1), 0.9 * (hit ? 0.78 : 1) + idle * 0.035, 0.92);
+          model.legs[0].rotation.z = gait * 0.2;
+          model.legs[1].rotation.z = -gait * 0.2;
+          model.arms[0].rotation.z = -gait * 0.15;
+          model.arms[1].rotation.z = gait * 0.15;
+          model.bodyMaterial.emissive.set(hit ? "#efbd62" : "#000000");
+          model.bodyMaterial.emissiveIntensity = hit ? 0.7 : 0;
+        }
+      }
+
+      function checkMonsterRespawns(time) {
+        if (!canWriteMonsters || time - lastMonsterRespawnCheck < 1000) return;
+        lastMonsterRespawnCheck = time;
+        for (const monster of monsterStates.values()) {
+          if (monster.health > 0 || Date.now() < monster.respawnAt) continue;
+          const monsterReference = ref(database, `worldMonsters/${selectedCharacter.serverId}/${monster.id}`);
+          runTransaction(monsterReference, (current) => {
+            if (!current || current.health > 0 || current.respawnAt > Date.now()) return;
+            return { ...current, health: current.maxHealth, respawnAt: 0 };
+          }).catch((error) => {
+            canWriteMonsters = false;
+            monsterSyncError = error.message || "Could not respawn shared monsters.";
+            console.error("Could not respawn a shared monster.", error);
+            updateOnlineStatus();
+          });
+        }
+      }
+
+      function activateSkillSlot(slot) {
+        const skill = skillsById.get(equippedSkills[slot]);
+        if (!skill) {
+          setStatus("Open Skills and assign an ability to this slot first.");
+          return;
+        }
+        const now = Date.now();
+        const cooldownUntil = skillCooldowns.get(skill.id) || 0;
+        if (cooldownUntil > now) {
+          setStatus(`${skill.name} is on cooldown.`);
+          return;
+        }
+        if (!canWriteMonsters) {
+          setStatus("Shared monster combat is not connected. Check the latest Firebase rules.", true);
+          return;
+        }
+
+        const selectedTarget = selectedMonsterId ? monsterStates.get(selectedMonsterId) : null;
+        const target = selectedTarget?.health > 0
+          ? selectedTarget
+          : [...monsterStates.values()]
+            .filter((monster) => monster.health > 0)
+            .map((monster) => ({ monster, distance: Math.hypot(monster.x - localPlayer.x, monster.y - localPlayer.y) }))
+            .filter((entry) => entry.distance <= skill.range)
+            .sort((left, right) => left.distance - right.distance)[0]?.monster;
+        if (!target) {
+          setStatus("Select a monster in the world before using a skill.");
+          return;
+        }
+        selectedMonsterId = target.id;
+        if (Math.hypot(target.x - localPlayer.x, target.y - localPlayer.y) > skill.range) {
+          pendingSkillCast = { skillId: skill.id, monsterId: target.id };
+          renderTargetPanel();
+          setStatus(`Moving into range of ${target.name} to use ${skill.name}.`);
+          return;
+        }
+        pendingSkillCast = null;
+        renderTargetPanel();
+        castSkillAtTarget(skill, target);
+      }
+
+      function castSkillAtTarget(skill, target) {
+        const now = Date.now();
+        const cooldownUntil = skillCooldowns.get(skill.id) || 0;
+        if (cooldownUntil > now) {
+          setStatus(`${skill.name} is on cooldown.`);
+          return;
+        }
+        if (!canWriteMonsters) {
+          setStatus("Shared monster combat is not connected. Check the latest Firebase rules.", true);
+          return;
+        }
+        const currentTarget = monsterStates.get(target.id) || target;
+        if (currentTarget.health <= 0) {
+          pendingSkillCast = null;
+          setStatus(`${currentTarget.name} is no longer available.`);
+          return;
+        }
+        if (Math.hypot(currentTarget.x - localPlayer.x, currentTarget.y - localPlayer.y) > skill.range) {
+          selectedMonsterId = currentTarget.id;
+          pendingSkillCast = { skillId: skill.id, monsterId: currentTarget.id };
+          renderTargetPanel();
+          setStatus(`Moving into range of ${currentTarget.name} to use ${skill.name}.`);
+          return;
+        }
+
+        const previousCooldownUntil = skillCooldowns.get(skill.id) || 0;
+        skillCooldowns.set(skill.id, now + getSkillCooldownMs(skill));
+        renderActionSlots();
+        const monsterReference = ref(database, `worldMonsters/${selectedCharacter.serverId}/${currentTarget.id}`);
+        runTransaction(monsterReference, (current) => {
+          if (!current || current.health <= 0
+              || Math.hypot(current.x - localPlayer.x, current.y - localPlayer.y) > skill.range) return;
+          const health = Math.max(0, current.health - skill.damage);
+          return {
+            ...current,
+            health,
+            respawnAt: health === 0 ? Date.now() + monsterRespawnDelay : 0,
+            lastAttack: {
+              id: `${tabSessionId}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
+              skillId: skill.id,
+              attackerUid: currentUser.uid,
+              sessionId: tabSessionId,
+              startX: Math.round(localPlayer.x * 10) / 10,
+              startY: Math.round(localPlayer.y * 10) / 10,
+              usedAt: Date.now(),
+            },
+          };
+        })
+          .then((result) => {
+            if (!result.committed || !result.snapshot.exists()) {
+              if (previousCooldownUntil > now) skillCooldowns.set(skill.id, previousCooldownUntil);
+              else skillCooldowns.delete(skill.id);
+              renderActionSlots();
+              setStatus(`${currentTarget.name} moved or was defeated before the skill landed.`);
+              return;
+            }
+            const updated = result.snapshot.val();
+            const currentState = monsterStates.get(currentTarget.id) || currentTarget;
+            monsterStates.set(currentTarget.id, {
+              ...currentState,
+              health: updated.health,
+              respawnAt: updated.respawnAt || 0,
+              hitUntil: performance.now() + 260,
+            });
+            setStatus(`${skill.name} hit ${currentTarget.name} for ${skill.damage}.`);
+          })
+          .catch((error) => {
+            if (previousCooldownUntil > now) skillCooldowns.set(skill.id, previousCooldownUntil);
+            else skillCooldowns.delete(skill.id);
+            renderActionSlots();
+            canWriteMonsters = false;
+            monsterSyncError = error.message || "Shared monster attack failed.";
+            console.error("Could not apply shared monster damage.", error);
+            setStatus(`Could not use ${skill.name}: ${monsterSyncError}`, true);
+          });
+      }
+
+      function drawSkillEffects(time) {
+        for (let index = skillEffects.length - 1; index >= 0; index -= 1) {
+          const effect = skillEffects[index];
+          const progress = (time - effect.startedAt) / effect.duration;
+          if (progress >= 1) {
+            skillEffects.splice(index, 1);
+            continue;
+          }
+          const alpha = Math.sin(Math.PI * Math.max(0, progress));
+          const dx = effect.endX - effect.startX;
+          const dy = effect.endY - effect.startY;
+          const length = Math.hypot(dx, dy) || 1;
+          const unitX = dx / length;
+          const unitY = dy / length;
+          const drawProjectile = (shotProgress, offset = 0) => {
+            if (shotProgress < 0 || shotProgress > 1) return;
+            const x = effect.startX + dx * shotProgress + unitY * offset;
+            const y = effect.startY - 10 + dy * shotProgress - unitX * offset;
+            context.globalAlpha = 1 - shotProgress * 0.35;
+            context.strokeStyle = effect.color;
+            context.lineWidth = 3;
+            context.beginPath();
+            context.moveTo(x - unitX * 18, y - unitY * 18);
+            context.lineTo(x, y);
+            context.stroke();
+            context.shadowColor = effect.color;
+            context.shadowBlur = 14;
+            context.fillStyle = "#fff8db";
+            context.beginPath();
+            context.arc(x, y, 4, 0, Math.PI * 2);
+            context.fill();
+            context.shadowBlur = 0;
+          };
+
+          context.save();
+          context.strokeStyle = effect.color;
+          context.lineCap = "round";
+          context.globalAlpha = alpha;
+          if (effect.animation === "projectile" || effect.animation === "thorn") {
+            drawProjectile(progress);
+            if (effect.animation === "thorn" && progress > 0.75) {
+              context.globalAlpha = alpha;
+              for (let spike = -1; spike <= 1; spike += 1) {
+                context.beginPath();
+                context.moveTo(effect.endX + spike * 8, effect.endY + 4);
+                context.lineTo(effect.endX + spike * 8, effect.endY - 12 - (1 - progress) * 24);
+                context.stroke();
+              }
+            }
+          } else if (effect.animation === "volley") {
+            for (let shot = 0; shot < 3; shot += 1) {
+              drawProjectile((progress - shot * 0.14) / 0.58, (shot - 1) * 9);
+            }
+          } else if (effect.animation === "slash" || effect.animation === "sweep" || effect.animation === "dash") {
+            const radius = effect.animation === "sweep" ? 34 : 24;
+            context.globalAlpha = alpha;
+            context.lineWidth = effect.animation === "dash" ? 5 : 6;
+            if (effect.animation === "dash") {
+              context.globalAlpha = alpha * 0.55;
+              context.beginPath();
+              context.moveTo(effect.startX, effect.startY - 10);
+              context.lineTo(effect.endX, effect.endY - 10);
+              context.stroke();
+              context.globalAlpha = alpha;
+            }
+            context.beginPath();
+            context.arc(
+              effect.endX,
+              effect.endY - 10,
+              radius * (0.82 + progress * 0.22),
+              Math.PI * (0.9 + progress * 0.65),
+              Math.PI * (1.95 + progress * 0.25),
+            );
+            context.stroke();
+          } else if (effect.animation === "beam") {
+            context.globalAlpha = alpha * 0.8;
+            context.lineWidth = 8 * (1 - progress) + 2;
+            context.beginPath();
+            context.moveTo(effect.startX, effect.startY - 12);
+            context.lineTo(effect.endX, effect.endY - 10);
+            context.stroke();
+          } else if (effect.animation === "roots") {
+            context.lineWidth = 4;
+            for (let root = -2; root <= 2; root += 1) {
+              const x = effect.endX + root * 9;
+              context.beginPath();
+              context.moveTo(x, effect.endY + 6);
+              context.quadraticCurveTo(x + root * 4, effect.endY - progress * 24, x + root * 3, effect.endY - progress * 32);
+              context.stroke();
+            }
+          } else {
+            const radius = 8 + progress * (effect.animation === "impact" ? 28 : 42);
+            context.lineWidth = effect.animation === "impact" ? 5 : 3;
+            context.beginPath();
+            context.arc(effect.endX, effect.endY - 10, radius, 0, Math.PI * 2);
+            context.stroke();
+            if (effect.animation === "nova" || effect.animation === "bloom") {
+              for (let petal = 0; petal < 8; petal += 1) {
+                const angle = petal * Math.PI / 4 + progress * 0.35;
+                const inner = radius * 0.45;
+                const outer = radius + 8;
+                context.beginPath();
+                context.moveTo(effect.endX + Math.cos(angle) * inner, effect.endY - 10 + Math.sin(angle) * inner);
+                context.lineTo(effect.endX + Math.cos(angle) * outer, effect.endY - 10 + Math.sin(angle) * outer);
+                context.stroke();
+              }
+            }
+          }
+          context.restore();
+        }
+      }
+
       function disposeAvatarModel(model) {
         avatarScene.remove(model.group);
         model.group.traverse((object) => {
@@ -911,7 +1881,7 @@
         model.head.position.y = 32 + Math.sin(time * 0.0025) * 0.18;
       }
 
-      function drawPlayerLabel(player, isLocal) {
+      function drawPlayerLabel(player, isLocal, playerKey, time) {
         const name = typeof player.name === "string" && player.name.trim()
           ? player.name
           : isLocal ? selectedCharacter?.name || "Champion" : "Adventurer";
@@ -929,10 +1899,34 @@
         context.fillRect(-labelWidth / 2, -44, labelWidth, 14);
         context.fillStyle = isLocal ? "#fff0c8" : "#e2ffff";
         context.fillText(name, 0, -37);
+        drawSkillUseIndicator(playerKey, time);
         context.restore();
       }
 
-      function drawPlayerFallback(player, isLocal, time) {
+      function drawSkillUseIndicator(playerKey, time) {
+        const indicator = skillUseIndicators.get(playerKey);
+        if (!indicator) return;
+        if (indicator.expiresAt <= time) {
+          skillUseIndicators.delete(playerKey);
+          return;
+        }
+        const skill = skillsById.get(indicator.skillId);
+        if (!skill) return;
+        const label = `${skill.icon} ${skill.name}`;
+        context.font = "800 9px Inter, Segoe UI, sans-serif";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        const labelWidth = context.measureText(label).width + 12;
+        context.fillStyle = "rgba(10, 17, 20, 0.9)";
+        context.fillRect(-labelWidth / 2, -60, labelWidth, 14);
+        context.strokeStyle = skill.color;
+        context.lineWidth = 1;
+        context.strokeRect(-labelWidth / 2, -60, labelWidth, 14);
+        context.fillStyle = skill.color;
+        context.fillText(label, 0, -53);
+      }
+
+      function drawPlayerFallback(player, isLocal, playerKey, time) {
         const armorColor = classColors[player.classType] || "#dce8df";
         const name = typeof player.name === "string" && player.name.trim()
           ? player.name
@@ -957,6 +1951,7 @@
         context.font = "700 10px Inter, Segoe UI, sans-serif";
         context.textAlign = "center";
         context.fillText(name, 0, -31);
+        drawSkillUseIndicator(playerKey, time);
 
         context.translate(0, idleBreath + (player.moving ? Math.abs(walkCycle) * 1.1 : 0));
         const facingX = Number.isFinite(player.facingX) ? player.facingX : 0;
@@ -1092,34 +2087,51 @@
           minimapContext.fill();
         };
         for (const player of remotePlayers.values()) drawMarker(player, "#9ce8e7", 3);
+        for (const monster of monsterStates.values()) {
+          if (monster.health > 0) drawMarker(monster, "#e78963", 3);
+        }
         drawMarker(localPlayer, "#ffe08a", 4);
-        document.getElementById("minimap-coordinates").textContent =
-          `${Math.round(localPlayer.x)}, ${Math.round(localPlayer.y)}`;
+        const coordinates = `${Math.round(localPlayer.x)}, ${Math.round(localPlayer.y)}`;
+        const coordinateLabel = document.getElementById("minimap-coordinates");
+        if (coordinateLabel.textContent !== coordinates) coordinateLabel.textContent = coordinates;
       }
 
       function updateLocation() {
+        let locationName;
+        let minimapLocation;
         if (localPlayer.y < 800) {
-          document.getElementById("location-label").textContent = "Aether Grove";
-          document.getElementById("minimap-location").textContent = "Aether Grove";
+          locationName = "Aether Grove";
+          minimapLocation = "Aether Grove";
         } else if (localPlayer.x < 1050) {
-          document.getElementById("location-label").textContent = "Mosslight Wilds";
-          document.getElementById("minimap-location").textContent = "Mosslight Wilds";
+          locationName = "Mosslight Wilds";
+          minimapLocation = "Mosslight Wilds";
         } else if (localPlayer.x > 2050) {
-          document.getElementById("location-label").textContent = "The Sunken Reach";
-          document.getElementById("minimap-location").textContent = "Sunken Reach";
+          locationName = "The Sunken Reach";
+          minimapLocation = "Sunken Reach";
         } else {
-          document.getElementById("location-label").textContent = "The Verdant Reach";
-          document.getElementById("minimap-location").textContent = "Verdant Reach";
+          locationName = "The Verdant Reach";
+          minimapLocation = "Verdant Reach";
+        }
+        if (locationName !== currentLocationName) {
+          currentLocationName = locationName;
+          document.getElementById("location-label").textContent = locationName;
+          document.getElementById("minimap-location").textContent = minimapLocation;
         }
       }
 
       function renderFrame(time) {
         const width = canvas.clientWidth;
         const height = canvas.clientHeight;
-        const delta = Math.min((time - (lastFrameTime || time)) / 1000, 0.05);
+        const delta = Math.min((time - (lastFrameTime || time)) / 1000, 0.1);
         lastFrameTime = time;
         movePlayer(delta);
         syncPlayerState(time);
+        checkMonsterRespawns(time);
+        if (time - lastSkillHudUpdate >= 100) {
+          renderActionSlots();
+          renderTargetPanel();
+          lastSkillHudUpdate = time;
+        }
 
         let expiredPlayer = false;
         const now = Date.now();
@@ -1144,7 +2156,7 @@
               player.facingY = Math.sign(dy);
             }
           }
-          const interpolation = 1 - Math.exp(-delta * 18);
+          const interpolation = 1 - Math.exp(-delta * 14);
           player.x += dx * interpolation;
           player.y += dy * interpolation;
         }
@@ -1156,14 +2168,17 @@
         context.save();
         context.translate(width / 2 - cameraX, height / 2 - cameraY);
         drawWorld(cameraX, cameraY, width, height);
+        for (const monster of monsterStates.values()) drawMonster(monster, time);
+        drawSkillEffects(time);
         if (avatarRenderer) {
+          updateMonsterModels(time);
           const activeAvatarKeys = new Set(["local"]);
           for (const [playerKey, player] of remotePlayers) {
             activeAvatarKeys.add(playerKey);
-            drawPlayerLabel(player, false);
+            drawPlayerLabel(player, false, playerKey, time);
             updateAvatarModel(playerKey, player, false, time);
           }
-          drawPlayerLabel(localPlayer, true);
+          drawPlayerLabel(localPlayer, true, `${currentUser.uid}:${tabSessionId}`, time);
           updateAvatarModel("local", localPlayer, true, time);
           for (const [playerKey, model] of avatarModels) {
             if (!activeAvatarKeys.has(playerKey)) {
@@ -1172,8 +2187,10 @@
             }
           }
         } else {
-          for (const player of remotePlayers.values()) drawPlayerFallback(player, false, time);
-          drawPlayerFallback(localPlayer, true, time);
+          for (const [playerKey, player] of remotePlayers) {
+            drawPlayerFallback(player, false, playerKey, time);
+          }
+          drawPlayerFallback(localPlayer, true, `${currentUser.uid}:${tabSessionId}`, time);
         }
         context.restore();
         if (avatarRenderer) {
@@ -1186,47 +2203,95 @@
           avatarCamera.updateProjectionMatrix();
           avatarRenderer.render(avatarScene, avatarCamera);
         }
-        updateLocation();
-        drawMinimap();
+        if (time - lastLocationUpdate >= 250) {
+          updateLocation();
+          lastLocationUpdate = time;
+        }
+        if (time - lastMinimapUpdate >= 100) {
+          drawMinimap();
+          lastMinimapUpdate = time;
+        }
         window.requestAnimationFrame(renderFrame);
       }
 
       function movePlayer(delta) {
-        const horizontal = Math.max(-1, Math.min(1,
+        let horizontal = Math.max(-1, Math.min(1,
           (heldDirections.has("right") ? 1 : 0) - (heldDirections.has("left") ? 1 : 0) + joystickVector.x));
-        const vertical = Math.max(-1, Math.min(1,
+        let vertical = Math.max(-1, Math.min(1,
           (heldDirections.has("down") ? 1 : 0) - (heldDirections.has("up") ? 1 : 0) + joystickVector.y));
-        if (Math.hypot(horizontal, vertical) < 0.08) {
-          localPlayer.moving = false;
-          return;
+        if (pendingSkillCast) {
+          if (Math.hypot(horizontal, vertical) >= 0.08) {
+            pendingSkillCast = null;
+            renderTargetPanel();
+          } else {
+            const skill = skillsById.get(pendingSkillCast.skillId);
+            const target = monsterStates.get(pendingSkillCast.monsterId);
+            if (!skill || !target || target.health <= 0) {
+              pendingSkillCast = null;
+              renderTargetPanel();
+              setStatus("Auto-cast cancelled because the target is no longer available.");
+            } else {
+              selectedMonsterId = target.id;
+              const distanceX = target.x - localPlayer.x;
+              const distanceY = target.y - localPlayer.y;
+              const distance = Math.hypot(distanceX, distanceY);
+              const stopDistance = Math.max(20, skill.range - 12);
+              if (distance <= stopDistance) {
+                pendingSkillCast = null;
+                renderTargetPanel();
+                castSkillAtTarget(skill, target);
+              } else {
+                horizontal = distanceX / distance;
+                vertical = distanceY / distance;
+              }
+            }
+          }
         }
-        localPlayer.moving = true;
-        const length = Math.hypot(horizontal, vertical);
-        const speed = 210;
-        const directionX = horizontal / length;
-        const directionY = vertical / length;
-        const dx = directionX * speed * delta;
-        const dy = directionY * speed * delta;
-        if (Math.abs(horizontal) > Math.abs(vertical)) {
-          localPlayer.facingX = Math.sign(horizontal);
-          localPlayer.facingY = 0;
-        } else {
-          localPlayer.facingX = 0;
-          localPlayer.facingY = Math.sign(vertical);
+        const inputLength = Math.hypot(horizontal, vertical);
+        const hasInput = inputLength >= 0.08;
+        const movementScale = hasInput ? Math.min(1, inputLength) : 0;
+        const directionX = hasInput ? horizontal / inputLength : 0;
+        const directionY = hasInput ? vertical / inputLength : 0;
+        const speed = 145;
+        const targetVelocityX = directionX * speed * movementScale;
+        const targetVelocityY = directionY * speed * movementScale;
+        const acceleration = hasInput ? 1050 : 1500;
+        const maxVelocityChange = acceleration * delta;
+        localPlayer.velocityX += Math.max(-maxVelocityChange, Math.min(maxVelocityChange, targetVelocityX - localPlayer.velocityX));
+        localPlayer.velocityY += Math.max(-maxVelocityChange, Math.min(maxVelocityChange, targetVelocityY - localPlayer.velocityY));
+        if (Math.hypot(localPlayer.velocityX, localPlayer.velocityY) < 1) {
+          localPlayer.velocityX = 0;
+          localPlayer.velocityY = 0;
         }
-        localPlayer.x = Math.max(18, Math.min(world.width - 18, localPlayer.x + dx));
-        localPlayer.y = Math.max(18, Math.min(world.height - 18, localPlayer.y + dy));
+        localPlayer.moving = Math.hypot(localPlayer.velocityX, localPlayer.velocityY) > 2;
+        if (hasInput) {
+          if (Math.abs(horizontal) > Math.abs(vertical)) {
+            localPlayer.facingX = Math.sign(horizontal);
+            localPlayer.facingY = 0;
+          } else {
+            localPlayer.facingX = 0;
+            localPlayer.facingY = Math.sign(vertical);
+          }
+        }
+        if (!localPlayer.moving) return;
+        localPlayer.x = Math.max(18, Math.min(world.width - 18, localPlayer.x + localPlayer.velocityX * delta));
+        localPlayer.y = Math.max(18, Math.min(world.height - 18, localPlayer.y + localPlayer.velocityY * delta));
       }
 
       function syncPlayerState(time) {
         const x = Math.round(localPlayer.x * 10) / 10;
         const y = Math.round(localPlayer.y * 10) / 10;
         const heartbeatDue = time - lastPresenceHeartbeat >= 5000;
-        const movementUpdateDue = localPlayer.moving && time - lastPositionWrite >= 100;
+        const hasUnsyncedPosition = lastPresenceX === null
+          || Math.hypot(x - lastPresenceX, y - lastPresenceY) >= 0.5;
+        const movementUpdateDue = hasUnsyncedPosition
+          && time - lastPositionWrite >= (localPlayer.moving ? 150 : 60);
         if (canWritePresence && !writePending && (heartbeatDue || movementUpdateDue)) {
           writePending = true;
           lastPositionWrite = time;
           lastPresenceHeartbeat = time;
+          lastPresenceX = x;
+          lastPresenceY = y;
           update(playerReference, { x, y, updatedAt: serverTimestamp() })
             .catch((error) => {
               canWritePresence = false;
@@ -1307,6 +2372,11 @@
       virtualJoystick.addEventListener("lostpointercapture", resetJoystick);
 
       window.addEventListener("keydown", (event) => {
+        if (/^[1-6]$/.test(event.key)) {
+          event.preventDefault();
+          activateSkillSlot(event.key);
+          return;
+        }
         const direction = keyDirections.get(event.key.toLowerCase());
         if (!direction) return;
         event.preventDefault();
@@ -1384,6 +2454,8 @@
             showLoadError("This character has an unsupported class and cannot join the world.");
             return;
           }
+          renderSkillBook();
+          renderActionSlots();
           localPlayer.name = selectedCharacter.name;
           localPlayer.classType = selectedCharacter.classType;
           localPlayer.lineage = selectedCharacter.lineage;

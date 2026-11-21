@@ -26,13 +26,28 @@ with animated low-poly 3D characters. Players on the same realm can move with
 WASD/arrow keys or the on-screen touch controls and see each other's live
 positions through Firebase Realtime Database. Characters resume at their last
 saved world location. Idle or disconnected player presence expires, while the
-character's saved location remains.
+character's saved location remains. Static terrain is cached in bounded chunks,
+and mobile devices use a lower render resolution to reduce frame cost. Player
+movement eases in and out locally, while remote movement is interpolated and
+briefly predicted between realtime updates.
 
 The world is an early prototype, not a production MMORPG: movement is
-client-reported and there is not yet combat, progression, or an authoritative
-game server. The realtime player rules are in `database.rules.json`; after
-selecting the correct Firebase project, publish them with
-`firebase deploy --only database` so online visibility and saved locations work.
+client-reported and combat is not validated by an authoritative game server.
+The realtime player, monster, skill, and cooldown rules are in
+`database.rules.json`; after selecting the correct Firebase project, publish
+them with `firebase deploy --only database`.
+
+Skill cooldowns are read live from
+`gameConfig/skills/{skillId}/cooldownMs` in Firebase Realtime Database, in
+milliseconds. Missing or invalid values use each skill's built-in default;
+valid values range from 250 to 120,000 ms. For example, set
+`gameConfig/skills/vanguard_cleave/cooldownMs` to `1200` to make Cleave's
+cooldown 1.2 seconds. Only accounts whose `users/{uid}/role` is `gamemaster`
+can write this configuration. Skill animations and the caster's skill label
+are shared with players in the same realm. Click or tap a living monster to
+lock it as your target; pressing a skill approaches until it is in range, then
+casts. Manual movement cancels the approach. This does not change the map.
+
 On mobile, the game requests fullscreen landscape on entry. If the browser
 blocks the automatic request, tap **Fullscreen**; orientation locking requires
 a secure page and a user gesture in supported browsers.
