@@ -42,10 +42,14 @@ class BackendJwtServiceTests {
 	void rejectsTamperedToken() {
 		BackendJwtService service = new BackendJwtService("test-signing-key-that-is-at-least-32-bytes", new ObjectMapper());
 		String token = service.issueUserToken("firebase-user-123");
+		String signatureAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+		int signatureLastCharacter = signatureAlphabet.indexOf(token.charAt(token.length() - 1));
+		String tamperedToken = token.substring(0, token.length() - 1)
+				+ signatureAlphabet.charAt(signatureLastCharacter | 1);
 
 		assertThrows(
 				BackendJwtService.InvalidSessionTokenException.class,
-				() -> service.verify(token.substring(0, token.length() - 1) + "x"));
+				() -> service.verify(tamperedToken));
 	}
 
 	@Test
