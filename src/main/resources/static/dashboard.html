@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#060a12" />
+    <title>Godfall Arena | Warrior Dashboard</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #060a12;
+        --panel: rgba(8, 15, 29, 0.88);
+        --edge: rgba(103, 232, 249, 0.2);
+        --cyan: #67e8f9;
+        --violet: #a78bfa;
+        --text: #f3f8ff;
+        --muted: #929eb3;
+        font-family: Inter, "Segoe UI", system-ui, sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        background:
+          radial-gradient(ellipse at 50% 28%, rgba(120, 97, 51, 0.18), transparent 45%),
+          radial-gradient(ellipse at 10% 45%, rgba(13, 148, 180, 0.13), transparent 36%),
+          radial-gradient(ellipse at 92% 78%, rgba(109, 72, 196, 0.11), transparent 34%),
+          linear-gradient(145deg, #060a12 0%, #0a111d 52%, #080914 100%);
+        color: var(--text);
+      }
+
+      body::before {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background-image:
+          linear-gradient(rgba(103, 232, 249, 0.025) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(103, 232, 249, 0.025) 1px, transparent 1px);
+        background-size: 64px 64px;
+        content: "";
+        mask-image: radial-gradient(ellipse at center, black 10%, transparent 82%);
+        pointer-events: none;
+      }
+
+      .shell { width: min(100% - 40px, 1180px); min-height: 100vh; margin: 0 auto; display: flex; flex-direction: column; }
+      .topbar { min-height: 76px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 28px; border-bottom: 1px solid rgba(103, 232, 249, 0.13); }
+      .brand { display: flex; align-items: center; gap: 12px; color: var(--text); text-decoration: none; }
+      .crest { width: 34px; height: 40px; color: var(--cyan); filter: drop-shadow(0 0 10px rgba(103, 232, 249, 0.28)); }
+      .brand-name { font-size: 0.74rem; font-weight: 850; letter-spacing: 0.18em; }
+      .brand-name span { display: block; margin-top: 3px; color: var(--cyan); font-size: 0.6rem; letter-spacing: 0.34em; }
+      .site-nav { display: flex; justify-content: center; gap: clamp(18px, 3vw, 42px); }
+      .site-nav a { color: #aebbd0; font-size: 0.67rem; font-weight: 750; letter-spacing: 0.14em; text-decoration: none; text-transform: uppercase; transition: color 150ms ease; }
+      .site-nav a:hover { color: var(--cyan); }
+      .topbar-actions { display: flex; align-items: center; gap: 12px; }
+      .session-state { display: flex; align-items: center; gap: 8px; color: #b7c8d6; font-size: 0.62rem; font-weight: 750; letter-spacing: 0.1em; text-transform: uppercase; }
+      .session-state::before { width: 7px; height: 7px; border-radius: 50%; background: #55f2cb; box-shadow: 0 0 10px rgba(85, 242, 203, 0.8); content: ""; }
+      .sign-out {
+        min-height: 36px;
+        padding: 0 15px;
+        border: 1px solid rgba(103, 232, 249, 0.3);
+        border-radius: 5px;
+        background: linear-gradient(180deg, rgba(27, 49, 68, 0.92), rgba(11, 23, 38, 0.95));
+        color: #d8f8ff;
+        cursor: pointer;
+        font: inherit;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+      }
+      .sign-out:hover { border-color: var(--cyan); background: rgba(103, 232, 249, 0.1); box-shadow: 0 0 20px rgba(34, 211, 238, 0.12); }
+      main { flex: 1; padding: 0 0 54px; }
+      .hero { position: relative; min-height: 430px; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; padding: 68px 0 50px; text-align: center; isolation: isolate; }
+      .hero::before { position: absolute; z-index: -2; inset: -10% -30% 0; background: repeating-conic-gradient(from -8deg at 50% 43%, rgba(103, 232, 249, 0.045) 0deg 5deg, transparent 5deg 16deg); content: ""; mask-image: radial-gradient(ellipse at 50% 44%, black 0%, transparent 68%); }
+      .hero::after { position: absolute; z-index: -1; top: 50%; left: 50%; width: min(72vw, 620px); aspect-ratio: 1; border: 1px solid rgba(103, 232, 249, 0.13); border-radius: 50%; background: radial-gradient(circle, rgba(34, 211, 238, 0.1), transparent 64%); box-shadow: 0 0 90px rgba(34, 211, 238, 0.08), inset 0 0 80px rgba(167, 139, 250, 0.04); content: ""; transform: translate(-50%, -50%); }
+      .hero-status { display: inline-flex; align-items: center; gap: 9px; padding: 8px 13px; border: 1px solid rgba(103, 232, 249, 0.22); border-radius: 4px; background: rgba(6, 18, 30, 0.74); color: var(--cyan); font-size: 0.62rem; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
+      .hero-status::before { width: 7px; height: 7px; border-radius: 50%; background: #55f2cb; box-shadow: 0 0 10px rgba(85, 242, 203, 0.8); content: ""; }
+      .eyebrow { margin: 24px 0 0; color: #b6c4d5; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.24em; text-transform: uppercase; }
+      h1 { margin: 13px 0 12px; font-size: clamp(2.5rem, 6.5vw, 5rem); line-height: 0.98; letter-spacing: -0.065em; text-transform: uppercase; text-shadow: 0 8px 38px rgba(0, 0, 0, 0.35); }
+      h1 span { display: block; margin-top: 8px; background: linear-gradient(100deg, #f8fcff 5%, #a9f3ff 58%, #b8a5ff 100%); background-clip: text; color: transparent; -webkit-background-clip: text; }
+      .welcome-copy { max-width: 520px; margin: 0; color: #a8b4c6; font-size: 0.92rem; line-height: 1.75; }
+      .hero-actions { display: flex; justify-content: center; gap: 12px; margin-top: 26px; }
+      .action { min-width: 160px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0 18px; border: 1px solid rgba(103, 232, 249, 0.34); border-radius: 5px; color: #e7fbff; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.11em; text-decoration: none; text-transform: uppercase; transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease; }
+      .action:hover { transform: translateY(-2px); border-color: var(--cyan); box-shadow: 0 8px 28px rgba(34, 211, 238, 0.14); }
+      .action-primary { border-color: rgba(179, 246, 255, 0.78); background: linear-gradient(105deg, #0891b2, #22d3ee 58%, #8272e8); color: #07111c; }
+      .action-secondary { background: rgba(18, 35, 54, 0.85); }
+      .stats-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0 0 30px; border: 1px solid rgba(103, 232, 249, 0.26); border-radius: 7px; background: linear-gradient(105deg, rgba(10, 25, 42, 0.96), rgba(12, 24, 43, 0.94)); box-shadow: 0 14px 44px rgba(0, 0, 0, 0.28), 0 0 28px rgba(34, 211, 238, 0.055); }
+      .stat { min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 18px 22px; border-right: 1px solid rgba(103, 232, 249, 0.13); }
+      .stat:last-child { border-right: 0; }
+      .stat-label { color: #8193aa; font-size: 0.57rem; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; }
+      .stat-value { max-width: 100%; overflow-wrap: anywhere; color: #e6f4ff; font-size: 0.82rem; font-weight: 700; }
+      .stat-value.online { color: #75f0c9; }
+      .dashboard-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 18px; }
+      .panel { position: relative; min-height: 245px; overflow: hidden; padding: 25px; border: 1px solid var(--edge); border-radius: 12px; background: linear-gradient(145deg, rgba(13, 25, 45, 0.94), var(--panel)); backdrop-filter: blur(18px); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25), inset 0 1px rgba(255, 255, 255, 0.06); scroll-margin-top: 24px; }
+      .panel::before { position: absolute; top: 0; left: 25px; width: 88px; height: 1px; background: linear-gradient(90deg, var(--cyan), transparent); content: ""; }
+      .panel-heading { display: flex; align-items: center; gap: 13px; margin-bottom: 21px; }
+      .panel-index { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid rgba(103, 232, 249, 0.24); border-radius: 7px; background: rgba(103, 232, 249, 0.07); color: var(--cyan); font-size: 0.65rem; font-weight: 800; }
+      .panel h2 { margin: 0; color: #c9f8ff; font-size: 0.72rem; letter-spacing: 0.17em; text-transform: uppercase; }
+      .panel-subtitle { margin: 5px 0 0; color: #8292a8; font-size: 0.73rem; }
+      .profile-row { display: flex; justify-content: space-between; gap: 20px; padding: 15px 0; border-top: 1px solid rgba(143, 180, 213, 0.12); }
+      .profile-row span:first-child { color: var(--muted); font-size: 0.78rem; }
+      .profile-row span:last-child { max-width: 65%; overflow-wrap: anywhere; color: var(--text); font-size: 0.85rem; text-align: right; }
+      .dashboard-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+      .dashboard-action { min-height: 47px; display: flex; align-items: center; justify-content: center; padding: 0 15px; border: 1px solid rgba(103, 232, 249, 0.3); border-radius: 5px; background: rgba(18, 35, 54, 0.85); color: #e7fbff; font: inherit; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.1em; text-align: center; text-decoration: none; text-transform: uppercase; }
+      .dashboard-action-arena { border-color: rgba(255, 230, 172, 0.82); background: linear-gradient(105deg, #f8bd58, #ee872d 58%, #d95d19); color: #17120a; }
+      .dashboard-action-discord { background: linear-gradient(105deg, rgba(42, 74, 110, 0.96), rgba(33, 54, 81, 0.96)); }
+      .dashboard-action-download:disabled { border-color: rgba(143, 180, 213, 0.14); color: #8292a8; cursor: not-allowed; }
+      .activity-list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+      .activity-item { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 15px 0; border-top: 1px solid rgba(143, 180, 213, 0.12); }
+      .activity-name { color: var(--text); font-size: 0.85rem; }
+      .activity-time { color: var(--muted); font-size: 0.75rem; text-align: right; }
+      .dashboard-status { min-height: 1.5em; margin-top: 18px; color: var(--muted); font-size: 0.82rem; text-align: center; }
+      .dashboard-status[data-state="error"] { color: #f59bb5; }
+      .updates-section { margin-top: 58px; }
+      .updates-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
+      .updates-kicker { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 10px; padding: 7px 10px; border: 1px solid rgba(103, 232, 249, 0.24); border-radius: 4px; background: rgba(103, 232, 249, 0.06); color: var(--cyan); font-size: 0.58rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; }
+      .updates-title { margin: 0; color: #eef7ff; font-size: clamp(1.7rem, 3.5vw, 2.55rem); letter-spacing: -0.045em; text-transform: uppercase; }
+      .updates-title span { color: #efbd62; }
+      .updates-note { margin: 0; color: #8799b0; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+      .updates-frame { position: relative; padding: 24px; border: 1px solid rgba(103, 232, 249, 0.2); background: linear-gradient(rgba(103, 232, 249, 0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(103, 232, 249, 0.025) 1px, transparent 1px), rgba(4, 9, 18, 0.72); background-size: 42px 42px; box-shadow: 0 18px 55px rgba(0, 0, 0, 0.24); }
+      .updates-board-label { width: fit-content; margin: -38px auto 18px; padding: 8px 14px; border: 1px solid rgba(239, 189, 98, 0.4); background: #101725; color: #efbd62; font-size: 0.62rem; font-weight: 850; letter-spacing: 0.16em; text-transform: uppercase; }
+      .updates-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+      .update-card { min-height: 220px; display: flex; flex-direction: column; padding: 18px; border: 1px solid rgba(103, 232, 249, 0.2); background: linear-gradient(145deg, rgba(17, 29, 49, 0.96), rgba(8, 14, 26, 0.98)); }
+      .update-card:first-child { border-color: rgba(239, 189, 98, 0.42); }
+      .update-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 15px; }
+      .update-tag { padding: 5px 8px; border: 1px solid rgba(103, 232, 249, 0.25); border-radius: 999px; background: rgba(103, 232, 249, 0.08); color: var(--cyan); font-size: 0.54rem; font-weight: 850; letter-spacing: 0.12em; text-transform: uppercase; }
+      .update-card:first-child .update-tag { border-color: rgba(239, 189, 98, 0.45); background: rgba(239, 189, 98, 0.13); color: #ffd27b; }
+      .update-meta time { color: #78889d; font-size: 0.61rem; }
+      .update-card h3 { margin: 0 0 10px; color: #e7f2ff; font-size: 0.9rem; line-height: 1.45; }
+      .update-card p { margin: 0; color: #91a1b6; font-size: 0.74rem; line-height: 1.7; }
+      .site-footer { margin-top: 18px; border-top: 1px solid rgba(103, 232, 249, 0.16); }
+      .footer-grid { display: grid; grid-template-columns: minmax(220px, 1.5fr) repeat(3, minmax(130px, 1fr)); gap: 34px; padding: 36px 0 30px; }
+      .footer-about .brand { display: inline-flex; }
+      .footer-about p { max-width: 290px; margin: 14px 0 0; color: #8292a8; font-size: 0.78rem; line-height: 1.7; }
+      .footer-column { display: flex; flex-direction: column; align-items: flex-start; gap: 11px; }
+      .footer-column h2 { margin: 0 0 4px; color: #d7efff; font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; }
+      .footer-column a, .footer-link-button { padding: 0; border: 0; background: none; color: #8799b0; cursor: pointer; font: inherit; font-size: 0.75rem; text-align: left; text-decoration: none; transition: color 150ms ease; }
+      .footer-column a:hover, .footer-link-button:hover { color: var(--cyan); }
+      .footer-realm-status { display: flex; align-items: center; gap: 8px; color: #75f0c9; font-size: 0.75rem; }
+      .footer-realm-status::before { width: 7px; height: 7px; border-radius: 50%; background: #55f2cb; box-shadow: 0 0 10px rgba(85, 242, 203, 0.8); content: ""; }
+      .footer-bottom { display: flex; justify-content: space-between; gap: 18px; padding: 15px 0; border-top: 1px solid rgba(103, 232, 249, 0.1); color: #718198; font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; }
+
+      @media (max-width: 700px) {
+        .topbar { grid-template-columns: auto 1fr; gap: 14px; }
+        .site-nav { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; padding: 0 0 13px; }
+        .topbar-actions { grid-column: 2; grid-row: 1; justify-self: end; }
+        .session-state { display: none; }
+        .hero { min-height: 390px; padding: 55px 0 42px; }
+        .hero::after { width: min(100vw, 520px); }
+        .stats-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .stat { padding: 15px 14px; }
+        .dashboard-grid { grid-template-columns: 1fr; }
+        .dashboard-actions { grid-template-columns: 1fr; }
+        .panel { min-height: auto; padding: 22px; }
+        .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 20px; }
+        .updates-grid { grid-template-columns: 1fr; }
+        .update-card { min-height: 0; }
+      }
+
+      @media (max-width: 440px) {
+        .shell { width: min(100% - 28px, 1180px); }
+        .hero-actions { width: 100%; flex-direction: column; align-items: stretch; }
+        .action { width: 100%; }
+        .stats-strip { grid-template-columns: 1fr; }
+        .stat { border-right: 0; border-bottom: 1px solid rgba(103, 232, 249, 0.13); }
+        .stat:last-child { border-bottom: 0; }
+        .stat { padding: 15px 13px; }
+        .stat-value { font-size: 0.74rem; }
+        .footer-grid { grid-template-columns: 1fr 1fr; gap: 24px 14px; }
+        .footer-about { grid-column: 1 / -1; }
+        .footer-bottom { flex-direction: column; }
+        .updates-header { align-items: flex-start; flex-direction: column; gap: 10px; }
+        .updates-frame { padding: 20px 14px 14px; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="Godfall Arena home">
+          <svg class="crest" viewBox="0 0 48 56" fill="none" aria-hidden="true">
+            <path d="M24 2 44 10v17c0 12-8 21-20 27C12 48 4 39 4 27V10L24 2Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="m24 12 3.7 8.3 8.8.8-6.7 5.8 2 8.6-7.8-4.5-7.8 4.5 2-8.6-6.7-5.8 8.8-.8L24 12Z" stroke="currentColor" stroke-width="1.3"/>
+          </svg>
+          <span class="brand-name">GODFALL <span>ARENA</span></span>
+        </a>
+        <nav class="site-nav" aria-label="Dashboard sections">
+          <a href="#profile">Profile</a>
+          <a href="#activity">Activity</a>
+        </nav>
+        <div class="topbar-actions">
+          <span class="session-state">Session active</span>
+          <button class="sign-out" id="sign-out" type="button">Sign out</button>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero" aria-labelledby="welcome-title">
+          <div class="hero-status">Realm link established</div>
+          <p class="eyebrow">Godfall Arena // Personal Terminal</p>
+          <h1 id="welcome-title">Welcome back<span id="warrior-name">Warrior</span></h1>
+          <p class="welcome-copy">Your identity is verified. Review your warrior profile and recent activity below.</p>
+          <div class="hero-actions">
+            <a class="action action-primary" href="#profile">View profile</a>
+            <a class="action action-secondary" href="#activity">Recent activity</a>
+          </div>
+        </section>
+
+        <section class="stats-strip" aria-label="Account overview">
+          <div class="stat">
+            <span class="stat-label">Realm</span>
+            <strong class="stat-value online">Online</strong>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Verification</span>
+            <strong class="stat-value" id="profile-verification">Checking...</strong>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Access role</span>
+            <strong class="stat-value" id="profile-role">User</strong>
+          </div>
+        </section>
+
+        <div class="dashboard-grid">
+          <section class="panel" id="profile" aria-labelledby="profile-title">
+            <div class="panel-heading">
+              <span class="panel-index" aria-hidden="true">01</span>
+              <div>
+                <h2 id="profile-title">Warrior profile</h2>
+                <p class="panel-subtitle">Your account identity</p>
+              </div>
+            </div>
+            <div class="profile-row"><span>Email</span><span id="profile-email">Loading...</span></div>
+          </section>
+
+          <section class="panel" id="activity" aria-labelledby="activity-title">
+            <div class="panel-heading">
+              <span class="panel-index" aria-hidden="true">02</span>
+              <div>
+                <h2 id="activity-title">Recent activity</h2>
+                <p class="panel-subtitle">Your latest arena events</p>
+              </div>
+            </div>
+            <ul class="activity-list" id="activity-list"></ul>
+          </section>
+        </div>
+        <div class="dashboard-actions" aria-label="Warrior actions">
+          <button class="dashboard-action dashboard-action-download" type="button" disabled title="Download is not available yet">Download · Coming soon</button>
+          <a class="dashboard-action dashboard-action-arena" href="/characters">Enter the World</a>
+          <a class="dashboard-action dashboard-action-discord" href="https://discord.gg/m4sKNZ2Fz" target="_blank" rel="noopener noreferrer">Join Discord</a>
+        </div>
+        <p class="dashboard-status" id="dashboard-status" role="status" aria-live="polite">Checking your warrior account...</p>
+
+        <section class="updates-section" aria-labelledby="updates-title">
+          <div class="updates-header">
+            <div>
+              <p class="updates-kicker">Arena bulletin</p>
+              <h2 class="updates-title" id="updates-title">Latest <span>updates</span></h2>
+            </div>
+            <p class="updates-note">Sample content · Replace with official news</p>
+          </div>
+          <div class="updates-frame">
+            <div class="updates-board-label">Notice board · Preview</div>
+            <div class="updates-grid">
+              <article class="update-card">
+                <div class="update-meta">
+                  <span class="update-tag">Sample</span>
+                  <time>Coming soon</time>
+                </div>
+                <h3>Arena access opens for verified warriors</h3>
+                <p>Sample announcement copy for future world access, events, and arena features.</p>
+              </article>
+              <article class="update-card">
+                <div class="update-meta">
+                  <span class="update-tag">Sample</span>
+                  <time>Coming soon</time>
+                </div>
+                <h3>Profile systems receive an upgrade</h3>
+                <p>Use this space for release notes about account features and quality-of-life improvements.</p>
+              </article>
+              <article class="update-card">
+                <div class="update-meta">
+                  <span class="update-tag">Sample</span>
+                  <time>Coming soon</time>
+                </div>
+                <h3>New realm events are on the horizon</h3>
+                <p>Share official event details here when the next Godfall Arena update is ready.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <div class="footer-grid">
+          <div class="footer-about">
+            <a class="brand" href="/" aria-label="Godfall Arena home">
+              <svg class="crest" viewBox="0 0 48 56" fill="none" aria-hidden="true">
+                <path d="M24 2 44 10v17c0 12-8 21-20 27C12 48 4 39 4 27V10L24 2Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="m24 12 3.7 8.3 8.8.8-6.7 5.8 2 8.6-7.8-4.5-7.8 4.5 2-8.6-6.7-5.8 8.8-.8L24 12Z" stroke="currentColor" stroke-width="1.3"/>
+              </svg>
+              <span class="brand-name">GODFALL <span>ARENA</span></span>
+            </a>
+            <p>Forge your legend, review your account, and return to the arena whenever you are ready.</p>
+          </div>
+          <nav class="footer-column" aria-label="Explore">
+            <h2>Explore</h2>
+            <a href="#profile">Warrior profile</a>
+            <a href="#activity">Recent activity</a>
+          </nav>
+          <div class="footer-column">
+            <h2>Account</h2>
+            <a href="#profile">Account details</a>
+            <button class="footer-link-button" id="footer-sign-out" type="button">Sign out</button>
+          </div>
+          <div class="footer-column">
+            <h2>Realm</h2>
+            <span class="footer-realm-status">Session active</span>
+            <span class="footer-link-button">Verified access</span>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span>Godfall Arena · Enter with honor. Leave your mark.</span>
+          <span>Warrior account portal</span>
+        </div>
+      </footer>
+    </div>
+
+    <script src="./firebase-config.js"></script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        reload,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+      const status = document.getElementById("dashboard-status");
+      const firebaseConfig = window.FIREBASE_CONFIG;
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+
+      function showActivity(entries) {
+        const list = document.getElementById("activity-list");
+        list.replaceChildren();
+        if (entries.length === 0) {
+          const item = document.createElement("li");
+          item.className = "activity-item";
+          item.textContent = "No activity recorded yet.";
+          list.append(item);
+          return;
+        }
+
+        entries
+          .sort((first, second) => (second.createdAt || 0) - (first.createdAt || 0))
+          .forEach((entry) => {
+            const item = document.createElement("li");
+            item.className = "activity-item";
+            const name = document.createElement("span");
+            name.className = "activity-name";
+            name.textContent = entry.event === "registered" ? "Email verified · Registered" : "Signed in";
+            const time = document.createElement("time");
+            time.className = "activity-time";
+            time.textContent = new Date(entry.createdAt).toLocaleString();
+            item.append(name, time);
+            list.append(item);
+          });
+      }
+
+      async function readApiResponse(response) {
+        const responseText = await response.text();
+        try {
+          return responseText ? JSON.parse(responseText) : {};
+        } catch {
+          throw new Error(`The backend returned a non-JSON response (HTTP ${response.status}).`);
+        }
+      }
+
+      async function fetchDashboard(user) {
+        const dashboardUrl = "/api/auth/dashboard";
+        const requestDashboard = async () => {
+          const response = await fetch(dashboardUrl, {
+            credentials: "same-origin",
+            headers: {
+              Authorization: `Bearer ${await user.getIdToken()}`,
+            },
+          });
+          return { response, body: await readApiResponse(response) };
+        };
+
+        let result = await requestDashboard();
+        if (
+          result.response.status === 401 &&
+          /backend session|sign-in session/i.test(result.body.message || "")
+        ) {
+          throw new Error("This account signed in on another device.");
+        }
+
+        if (!result.response.ok) {
+          throw new Error(result.body.message || `The backend returned HTTP ${result.response.status}.`);
+        }
+        return result.body;
+      }
+
+      async function signOutFromDashboard() {
+        try {
+          const logoutResponse = await fetch("/api/auth/logout", { method: "POST" });
+          if (!logoutResponse.ok) {
+            throw new Error("Could not end the backend session. Please try again.");
+          }
+          await signOut(auth);
+          window.location.replace("/");
+        } catch (error) {
+          status.textContent = error.message || "Could not sign out.";
+          status.dataset.state = "error";
+        }
+      }
+
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          window.location.replace("/");
+          return;
+        }
+
+        const emailField = document.getElementById("profile-email");
+        const verificationField = document.getElementById("profile-verification");
+        emailField.textContent = user.email || "—";
+
+        try {
+          await reload(user);
+          if (!user.emailVerified) {
+            await signOut(auth);
+            window.location.replace("/");
+            return;
+          }
+          verificationField.textContent = "Verified";
+          await user.getIdToken(true);
+
+          const dashboard = await fetchDashboard(user);
+          const profile = dashboard.user;
+          if (profile.role === "gamemaster") {
+            window.location.replace("/gamemaster");
+            return;
+          }
+          document.getElementById("warrior-name").textContent = profile.name || "Warrior";
+          emailField.textContent = profile.email || user.email || "—";
+          verificationField.textContent = profile.emailVerified ? "Verified" : "Unverified";
+          document.getElementById("profile-role").textContent = profile.role || "user";
+          showActivity(dashboard.activity || []);
+          status.textContent = "";
+        } catch (error) {
+          if (/backend session|sign-in session|another device/i.test(error.message || "")) {
+            await signOut(auth);
+            sessionStorage.setItem("godfall-session-ended", "account-switched");
+            window.location.replace("/?reason=account-switched");
+            return;
+          }
+          status.textContent = error.message || "Could not load your arena profile.";
+          status.dataset.state = "error";
+        }
+      });
+
+      document.getElementById("sign-out").addEventListener("click", signOutFromDashboard);
+      document.getElementById("footer-sign-out").addEventListener("click", signOutFromDashboard);
+    </script>
+  </body>
+</html>

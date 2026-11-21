@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: godfallarena
+firebase:
+  api-key: ${FIREBASE_API_KEY:AIzaSyBDZi--dGyxpAZAE30uA3EqhKM_tXzAwyc}
+  database-url: ${FIREBASE_DATABASE_URL:https://godfallarena-default-rtdb.asia-southeast1.firebasedatabase.app}
+  project-id: ${FIREBASE_PROJECT_ID:godfallarena}
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:}
+  auth-cookie-secure: ${AUTH_COOKIE_SECURE:false}

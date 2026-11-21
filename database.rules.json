@@ -1,0 +1,189 @@
+{
+  "rules": {
+    "servers": {
+      ".read": "auth != null && auth.token.email_verified === true && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now)",
+      ".write": "auth != null && auth.token.email_verified === true && root.child('users').child(auth.uid).child('role').val() === 'gamemaster' && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now)",
+      "$serverId": {
+        ".validate": "newData.hasChildren(['name', 'status', 'recommended'])",
+        "name": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+        },
+        "status": {
+          ".validate": "newData.isString() && (newData.val() === 'online' || newData.val() === 'busy' || newData.val() === 'full' || newData.val() === 'offline')"
+        },
+        "recommended": {
+          ".validate": "newData.isBoolean()"
+        },
+        "maxUsers": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 100000 && newData.val() % 1 === 0"
+        },
+        "$other": {
+          ".validate": "false"
+        }
+      }
+    },
+    "users": {
+      ".read": "auth != null && auth.token.email_verified === true && root.child('users').child(auth.uid).child('role').val() === 'gamemaster' && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now)",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid && auth.token.email_verified === true",
+        ".write": "auth != null && auth.uid === $uid && auth.token.email_verified === true && newData.exists() && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now)",
+        ".validate": "newData.hasChildren(['uid', 'name', 'email', 'emailVerified', 'role', 'createdAt', 'updatedAt'])",
+        "uid": {
+          ".validate": "newData.isString() && newData.val() === $uid"
+        },
+        "name": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
+        },
+        "email": {
+          ".validate": "newData.isString() && newData.val() === auth.token.email"
+        },
+        "emailVerified": {
+          ".validate": "newData.isBoolean() && newData.val() === true"
+        },
+        "role": {
+          ".validate": "newData.isString() && (newData.val() === 'user' || (data.val() === 'gamemaster' && newData.val() === 'gamemaster'))"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber() && (!data.exists() || newData.val() === data.val())"
+        },
+        "updatedAt": {
+          ".validate": "newData.isNumber() && newData.val() <= now"
+        },
+        "$other": {
+          ".validate": "false"
+        }
+      }
+    },
+    "userAccess": {
+      ".read": "auth != null && auth.token.email_verified === true && root.child('users').child(auth.uid).child('role').val() === 'gamemaster' && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now)",
+      "$uid": {
+        ".read": "auth != null && auth.token.email_verified === true && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'gamemaster')",
+        ".write": "auth != null && auth.token.email_verified === true && root.child('users').child(auth.uid).child('role').val() === 'gamemaster' && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now)",
+        ".validate": "newData.hasChildren(['banUntil'])",
+        "banUntil": {
+          ".validate": "newData.isNumber() && (newData.val() === 0 || (newData.val() > now && newData.val() <= now + 31536000000))"
+        },
+        "$other": {
+          ".validate": "false"
+        }
+      }
+    },
+    "gmActivity": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid && auth.token.email_verified === true && root.child('users').child(auth.uid).child('role').val() === 'gamemaster' && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now)",
+        ".indexOn": ["createdAt"],
+        "$activityId": {
+          ".write": "auth != null && auth.uid === $uid && auth.token.email_verified === true && root.child('users').child(auth.uid).child('role').val() === 'gamemaster' && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now) && !data.exists() && newData.exists()",
+          ".validate": "newData.hasChildren(['event', 'target', 'details', 'createdAt'])",
+          "event": {
+            ".validate": "newData.isString() && (newData.val() === 'user_banned' || newData.val() === 'user_unbanned' || newData.val() === 'server_created' || newData.val() === 'server_capacity_updated' || newData.val() === 'server_status_updated')"
+          },
+          "target": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 128"
+          },
+          "details": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 300"
+          },
+          "createdAt": {
+            ".validate": "newData.isNumber() && newData.val() <= now"
+          },
+          "$other": {
+            ".validate": "false"
+          }
+        }
+      }
+    },
+    "characterNames": {
+      "$serverId": {
+        ".read": "auth != null && auth.token.email_verified === true && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now)",
+        "$nameKey": {
+          ".write": "auth != null && auth.token.email_verified === true && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now) && ((!data.exists() && newData.exists() && (newData.child('uid').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'gamemaster')) || (data.exists() && !newData.exists() && (data.child('uid').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'gamemaster') && !root.child('characters').child(data.child('uid').val()).child(data.child('characterId').val()).exists()))",
+          ".validate": "newData.hasChildren(['uid', 'characterId', 'name', 'serverId'])",
+          "uid": {
+            ".validate": "newData.isString() && (newData.val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'gamemaster')"
+          },
+          "characterId": {
+            ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{1,128}$/)"
+          },
+          "name": {
+            ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9][A-Za-z0-9 _-]{2,23}$/)"
+          },
+          "serverId": {
+            ".validate": "newData.isString() && newData.val() === $serverId"
+          },
+          "$other": {
+            ".validate": "false"
+          }
+        }
+      }
+    },
+    "characters": {
+      ".read": "auth != null && auth.token.email_verified === true && root.child('users').child(auth.uid).child('role').val() === 'gamemaster' && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now)",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid && auth.token.email_verified === true && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now)",
+        "$characterId": {
+          ".write": "auth != null && auth.uid === $uid && auth.token.email_verified === true && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now) && ((!data.exists() && newData.exists()) || (data.exists() && !newData.exists()))",
+          ".validate": "newData.hasChildren(['uid', 'name', 'serverId', 'classType', 'lineage', 'bodyType', 'hairStyle', 'hairColor', 'faceStyle', 'createdAt'])",
+          "uid": {
+            ".validate": "newData.isString() && newData.val() === $uid"
+          },
+          "name": {
+            ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9][A-Za-z0-9 _-]{2,23}$/)"
+          },
+          "serverId": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 128"
+          },
+          "classType": {
+            ".validate": "newData.isString() && (newData.val() === 'vanguard' || newData.val() === 'striker' || newData.val() === 'arcanist' || newData.val() === 'warden')"
+          },
+          "lineage": {
+            ".validate": "newData.isString() && (newData.val() === 'aetherborn' || newData.val() === 'stoneborn' || newData.val() === 'wildkin')"
+          },
+          "bodyType": {
+            ".validate": "newData.isString() && (newData.val() === 'masculine' || newData.val() === 'feminine')"
+          },
+          "hairStyle": {
+            ".validate": "newData.isString() && (newData.val() === 'crown' || newData.val() === 'spire' || newData.val() === 'nomad' || newData.val() === 'aegis')"
+          },
+          "hairColor": {
+            ".validate": "newData.isString() && (newData.val() === 'silver' || newData.val() === 'gold' || newData.val() === 'ember' || newData.val() === 'violet')"
+          },
+          "faceStyle": {
+            ".validate": "newData.isString() && (newData.val() === 'calm' || newData.val() === 'focused' || newData.val() === 'battle-ready')"
+          },
+          "createdAt": {
+            ".validate": "newData.isNumber() && newData.val() <= now"
+          },
+          "$other": {
+            ".validate": "false"
+          }
+        }
+      }
+    },
+    "authLogs": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid && auth.token.email_verified === true && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now)",
+        ".indexOn": ["createdAt"],
+        "$eventId": {
+          ".write": "auth != null && auth.uid === $uid && auth.token.email_verified === true && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now) && !data.exists() && newData.exists()",
+          ".validate": "newData.hasChildren(['uid', 'email', 'event', 'createdAt'])",
+          "uid": {
+            ".validate": "newData.isString() && newData.val() === $uid"
+          },
+          "email": {
+            ".validate": "newData.isString() && newData.val() === auth.token.email"
+          },
+          "event": {
+            ".validate": "newData.isString() && (newData.val() === 'registered' || newData.val() === 'login')"
+          },
+          "createdAt": {
+            ".validate": "newData.isNumber() && newData.val() <= now"
+          },
+          "$other": {
+            ".validate": "false"
+          }
+        }
+      }
+    }
+  }
+}

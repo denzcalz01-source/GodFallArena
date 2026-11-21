@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#080b12" />
+    <title>Godfall Arena | Character Selection</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --panel: rgba(13, 19, 28, 0.88);
+        --edge: rgba(222, 187, 119, 0.23);
+        --cyan: #9ce8e7;
+        --gold: #e8bd73;
+        --text: #fff9ee;
+        --muted: #a9a9a4;
+        font-family: Inter, "Segoe UI", system-ui, sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        background:
+          radial-gradient(ellipse at 50% 20%, rgba(215, 169, 91, 0.14), transparent 42%),
+          radial-gradient(ellipse at 12% 78%, rgba(37, 132, 143, 0.16), transparent 34%),
+          linear-gradient(145deg, #080b12, #111720 52%, #0a0c12);
+        color: var(--text);
+      }
+
+      body::before {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background-image:
+          linear-gradient(rgba(232, 189, 115, 0.025) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(232, 189, 115, 0.025) 1px, transparent 1px);
+        background-size: 64px 64px;
+        content: "";
+        mask-image: radial-gradient(ellipse at center, black 10%, transparent 82%);
+        pointer-events: none;
+      }
+
+      .shell { width: min(100% - 40px, 1180px); min-height: 100vh; display: flex; flex-direction: column; margin: 0 auto; }
+      .topbar { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid rgba(232, 189, 115, 0.16); }
+      .brand { display: flex; align-items: center; gap: 12px; color: var(--text); text-decoration: none; }
+      .crest { width: 34px; height: 40px; color: var(--cyan); filter: drop-shadow(0 0 10px rgba(156, 232, 231, 0.24)); }
+      .brand-name { font-size: 0.74rem; font-weight: 850; letter-spacing: 0.18em; }
+      .brand-name span { display: block; margin-top: 3px; color: var(--cyan); font-size: 0.6rem; letter-spacing: 0.34em; }
+      .topbar-link, .create-link { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; border: 1px solid rgba(232, 189, 115, 0.32); border-radius: 5px; background: rgba(18, 30, 42, 0.8); color: #fff0cf; cursor: pointer; font: inherit; font-size: 0.6rem; font-weight: 850; letter-spacing: 0.09em; text-decoration: none; text-transform: uppercase; }
+      main { flex: 1; padding: clamp(42px, 8vh, 82px) 0 65px; }
+      .page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 27px; }
+      .eyebrow { margin: 0 0 10px; color: var(--cyan); font-size: 0.61rem; font-weight: 850; letter-spacing: 0.2em; text-transform: uppercase; }
+      h1 { margin: 0; color: #fffaf0; font-size: clamp(2.1rem, 5vw, 3.65rem); letter-spacing: -0.06em; line-height: 1; text-transform: uppercase; }
+      h1 span { color: var(--gold); }
+      .page-copy { max-width: 600px; margin: 13px 0 0; color: #a4a8ab; font-size: 0.83rem; line-height: 1.7; }
+      .content-panel { padding: clamp(20px, 3vw, 30px); border: 1px solid var(--edge); border-radius: 10px; background: linear-gradient(145deg, rgba(20, 28, 39, 0.91), var(--panel)); box-shadow: 0 25px 70px rgba(0, 0, 0, 0.29), inset 0 1px rgba(255, 255, 255, 0.055); }
+      .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+      .section-heading h2 { margin: 0; color: #e8f4f3; font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; }
+      .section-heading p { margin: 6px 0 0; color: #8e9ba3; font-size: 0.68rem; }
+      .character-count { color: var(--gold); font-size: 0.61rem; font-weight: 850; letter-spacing: 0.12em; white-space: nowrap; }
+      .character-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(245px, 1fr)); gap: 14px; }
+      .character-card, .add-card { position: relative; min-height: 242px; overflow: hidden; border: 1px solid rgba(184, 197, 194, 0.17); border-radius: 7px; background: linear-gradient(145deg, rgba(10, 17, 26, 0.92), rgba(20, 27, 35, 0.78)); }
+      .character-card { display: grid; grid-template-columns: 104px minmax(0, 1fr); align-items: center; gap: 16px; padding: 17px; }
+      .character-card::before { position: absolute; top: 0; left: 18px; width: 72px; height: 1px; background: linear-gradient(90deg, var(--gold), transparent); content: ""; }
+      .character-art { position: relative; min-height: 182px; display: grid; place-items: center; overflow: hidden; border: 1px solid rgba(232, 189, 115, 0.17); border-radius: 5px; background: radial-gradient(ellipse at 50% 30%, rgba(232, 189, 115, 0.16), transparent 54%), linear-gradient(180deg, rgba(74, 113, 123, 0.17), rgba(13, 18, 25, 0.8)); }
+      .character-art::before { position: absolute; width: 87px; aspect-ratio: 1; border: 1px solid rgba(232, 189, 115, 0.35); border-radius: 50%; background: radial-gradient(circle, rgba(232, 189, 115, 0.08), transparent 68%); content: ""; }
+      .character-figure { position: relative; z-index: 1; width: 67px; height: 142px; margin-top: 24px; filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.5)); }
+      .character-head { position: absolute; top: 0; left: 20px; width: 28px; height: 34px; border-radius: 45% 45% 42% 42%; background: linear-gradient(120deg, #f1d0ad, #a77a66); }
+      .character-hair { position: absolute; top: -3px; left: 18px; z-index: 2; width: 31px; height: 16px; border-radius: 60% 60% 28% 25%; background: var(--hair-color, #dce8f4); }
+      .character-shoulders { position: absolute; top: 36px; left: 4px; width: 59px; height: 29px; border: 1px solid var(--armor-color, var(--gold)); border-radius: 48% 48% 14% 14%; background: linear-gradient(130deg, #c8a75f, #283344 58%, #131b26); clip-path: polygon(8% 0, 35% 18%, 50% 0, 66% 18%, 92% 0, 100% 100%, 0 100%); }
+      .character-torso { position: absolute; top: 55px; left: 14px; width: 39px; height: 48px; border: 1px solid var(--armor-color, var(--gold)); background: linear-gradient(135deg, #9b7945, #1a2834 62%, #101720); clip-path: polygon(0 0, 50% 11%, 100% 0, 88% 100%, 12% 100%); }
+      .character-legs { position: absolute; top: 100px; left: 17px; width: 33px; height: 40px; background: linear-gradient(90deg, #273544 0 43%, transparent 43% 56%, #273544 56%); clip-path: polygon(0 0, 100% 0, 88% 100%, 57% 100%, 50% 25%, 42% 100%, 10% 100%); }
+      .character-art[data-class="arcanist"] { --armor-color: #bca3ee; }
+      .character-art[data-class="striker"] { --armor-color: #e9946f; }
+      .character-art[data-class="warden"] { --armor-color: #8fd4aa; }
+      .character-art[data-hair="gold"] { --hair-color: #f1bd58; }
+      .character-art[data-hair="ember"] { --hair-color: #e76d50; }
+      .character-art[data-hair="violet"] { --hair-color: #a98ae8; }
+      .character-art[data-body="feminine"] .character-shoulders { left: 9px; width: 49px; }
+      .character-art[data-body="feminine"] .character-torso { left: 17px; width: 33px; }
+      .character-copy { min-width: 0; }
+      .character-class { margin: 0 0 7px; color: var(--gold); font-size: 0.55rem; font-weight: 850; letter-spacing: 0.12em; text-transform: uppercase; }
+      .character-name { margin: 0; overflow-wrap: anywhere; color: #f7f4e9; font-size: 1.05rem; font-weight: 850; letter-spacing: 0.02em; }
+      .character-lineage { margin: 5px 0 15px; color: #aab4b8; font-size: 0.65rem; }
+      .character-details { display: grid; gap: 7px; margin: 0; }
+      .character-detail { display: flex; justify-content: space-between; gap: 9px; color: #8f9da3; font-size: 0.59rem; }
+      .character-detail strong { overflow: hidden; color: #d7e2df; font-size: inherit; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+      .character-actions { display: flex; margin-top: 16px; }
+      .delete-button { min-height: 34px; padding: 0 11px; border: 1px solid rgba(245, 120, 139, 0.38); border-radius: 4px; background: rgba(142, 40, 60, 0.16); color: #ffabb7; cursor: pointer; font: inherit; font-size: 0.55rem; font-weight: 850; letter-spacing: 0.09em; text-transform: uppercase; }
+      .delete-button:hover { border-color: rgba(245, 120, 139, 0.75); background: rgba(142, 40, 60, 0.28); }
+      .delete-button:disabled { cursor: wait; opacity: 0.55; }
+      .add-card { min-height: 242px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; border-style: dashed; background: rgba(8, 14, 22, 0.55); text-align: center; text-decoration: none; transition: border-color 150ms ease, background 150ms ease, transform 150ms ease; }
+      .add-card:hover { transform: translateY(-2px); border-color: var(--gold); background: rgba(232, 189, 115, 0.07); }
+      .add-icon { width: 47px; height: 47px; display: grid; place-items: center; margin-bottom: 13px; border: 1px solid rgba(232, 189, 115, 0.34); border-radius: 50%; color: var(--gold); font-size: 1.5rem; }
+      .add-card strong { color: #f2ead9; font-size: 0.69rem; letter-spacing: 0.1em; text-transform: uppercase; }
+      .add-card span:last-child { margin-top: 8px; color: #88969d; font-size: 0.65rem; line-height: 1.5; }
+      .empty-state { max-width: 560px; margin: 0 auto; padding: 36px 20px; text-align: center; }
+      .empty-emblem { width: 84px; height: 84px; display: grid; place-items: center; margin: 0 auto 20px; border: 1px solid rgba(232, 189, 115, 0.35); border-radius: 50%; background: radial-gradient(circle, rgba(232, 189, 115, 0.12), transparent 70%); color: var(--gold); font-size: 2rem; }
+      .empty-state h2 { margin: 0; color: #f5f0e5; font-size: 1.1rem; letter-spacing: 0.04em; }
+      .empty-state p { margin: 10px auto 20px; color: #a0a8a9; font-size: 0.75rem; line-height: 1.7; }
+      .create-link { border-color: rgba(255, 230, 172, 0.82); background: linear-gradient(105deg, #f8bd58, #ee872d 58%, #d95d19); color: #17120a; }
+      .load-status { min-height: 1.5em; margin: 13px 0 0; color: #87969b; font-size: 0.66rem; line-height: 1.5; }
+      .load-status[data-state="error"] { color: #f59bb5; }
+      .footer { margin-top: auto; padding: 17px 0; border-top: 1px solid rgba(232, 189, 115, 0.14); color: #77868c; font-size: 0.57rem; letter-spacing: 0.1em; text-align: center; text-transform: uppercase; }
+
+      @media (max-width: 640px) {
+        .shell { width: min(100% - 26px, 1180px); }
+        .topbar { min-height: 68px; }
+        .topbar-link { min-height: 35px; padding: 0 9px; font-size: 0.52rem; }
+        .page-heading { align-items: flex-start; flex-direction: column; }
+        .content-panel { padding: 17px 13px; }
+        .character-grid { grid-template-columns: 1fr; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <a class="brand" href="/dashboard.html" aria-label="Return to dashboard">
+          <svg class="crest" viewBox="0 0 48 56" fill="none" aria-hidden="true">
+            <path d="M24 2 44 10v17c0 12-8 21-20 27C12 48 4 39 4 27V10L24 2Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="m24 12 3.7 8.3 8.8.8-6.7 5.8 2 8.6-7.8-4.5-7.8 4.5 2-8.6-6.7-5.8 8.8-.8L24 12Z" stroke="currentColor" stroke-width="1.3"/>
+          </svg>
+          <span class="brand-name">GODFALL <span>ARENA</span></span>
+        </a>
+        <a class="topbar-link" href="/dashboard.html">Return to dashboard</a>
+      </header>
+
+      <main>
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">Hall of champions // Player-bound roster</p>
+            <h1>Your <span>champions</span></h1>
+            <p class="page-copy">Choose a realm to view its characters. Your roster belongs to your signed-in account, and you can remove characters you no longer need.</p>
+          </div>
+          <a class="create-link" id="primary-create-link" href="/game">Choose a realm</a>
+        </div>
+
+        <section class="content-panel" aria-labelledby="roster-title">
+          <div class="section-heading">
+            <div>
+              <h2 id="roster-title">Character roster</h2>
+              <p id="roster-copy">Loading characters linked to your account...</p>
+            </div>
+            <span class="character-count" id="character-count">— CHARACTERS</span>
+          </div>
+          <div class="empty-state" id="empty-state" hidden>
+            <div class="empty-emblem" aria-hidden="true">✦</div>
+            <h2>Your story starts here</h2>
+            <p id="empty-copy">No characters are linked to your account yet. Choose a realm to create your first champion.</p>
+            <a class="create-link" id="empty-create-link" href="/game">Choose a realm</a>
+          </div>
+          <div class="character-grid" id="character-grid" hidden></div>
+          <p class="load-status" id="load-status" role="status" aria-live="polite"></p>
+        </section>
+      </main>
+
+      <footer class="footer">Godfall Arena · Your roster is linked to your account</footer>
+    </div>
+
+    <script src="/firebase-config.js"></script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        reload,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+      const app = initializeApp(window.FIREBASE_CONFIG);
+      const auth = getAuth(app);
+      const status = document.getElementById("load-status");
+      const grid = document.getElementById("character-grid");
+      const emptyState = document.getElementById("empty-state");
+      const requestedServerId = new URLSearchParams(window.location.search).get("serverId");
+      let selectedServer = null;
+      let allCharacters = [];
+      let allServers = [];
+      const classLabels = {
+        vanguard: "Vanguard",
+        striker: "Striker",
+        arcanist: "Arcanist",
+        warden: "Warden",
+      };
+      const hairColors = ["silver", "gold", "ember", "violet"];
+
+      function setError(message) {
+        status.textContent = message;
+        status.dataset.state = "error";
+      }
+
+      function setMessage(message) {
+        status.textContent = message;
+        status.removeAttribute("data-state");
+      }
+
+      async function parseResponse(response) {
+        const text = await response.text();
+        try {
+          return text ? JSON.parse(text) : {};
+        } catch {
+          throw new Error(`The backend returned a non-JSON response (HTTP ${response.status}).`);
+        }
+      }
+
+      async function apiRequest(path, user, options = {}) {
+        let token = await user.getIdToken();
+        let response = await fetch(path, {
+          ...options,
+          credentials: "same-origin",
+          headers: { ...options.headers, Authorization: `Bearer ${token}` },
+        });
+        let body = await parseResponse(response);
+        if (response.status === 401 && /backend session|sign-in session/i.test(body.message || "")) {
+          throw new Error("This account signed in on another device.");
+        }
+        if (!response.ok) {
+          throw new Error(body.message || `The backend returned HTTP ${response.status}.`);
+        }
+        return body;
+      }
+
+      function addDetail(list, label, value) {
+        const row = document.createElement("div");
+        row.className = "character-detail";
+        const name = document.createElement("span");
+        name.textContent = label;
+        const content = document.createElement("strong");
+        content.textContent = value;
+        row.append(name, content);
+        list.append(row);
+      }
+
+      function createCharacterUrl() {
+        return selectedServer
+          ? `/character-creation?serverId=${encodeURIComponent(selectedServer.id)}`
+          : "/game";
+      }
+
+      function renderCharacter(character, user) {
+        const card = document.createElement("article");
+        card.className = "character-card";
+        const art = document.createElement("div");
+        art.className = "character-art";
+        art.dataset.class = character.classType;
+        art.dataset.body = character.bodyType;
+        art.dataset.hair = hairColors.includes(character.hairColor) ? character.hairColor : "silver";
+        const figure = document.createElement("div");
+        figure.className = "character-figure";
+        for (const shape of ["character-head", "character-hair", "character-shoulders", "character-torso", "character-legs"]) {
+          const part = document.createElement("span");
+          part.className = shape;
+          figure.append(part);
+        }
+        art.append(figure);
+
+        const copy = document.createElement("div");
+        copy.className = "character-copy";
+        const className = document.createElement("p");
+        className.className = "character-class";
+        className.textContent = classLabels[character.classType] || "Champion";
+        const name = document.createElement("h3");
+        name.className = "character-name";
+        name.textContent = character.name;
+        const lineage = document.createElement("p");
+        lineage.className = "character-lineage";
+        lineage.textContent = `${character.lineage} · ${character.bodyType}`;
+        const details = document.createElement("div");
+        details.className = "character-details";
+        const realmName = allServers.find((server) => server.id === character.serverId)?.name
+          || character.serverId;
+        addDetail(details, "Realm", realmName);
+        addDetail(details, "Hair", `${character.hairStyle} · ${character.hairColor}`);
+        if (typeof character.createdAt === "number") {
+          addDetail(details, "Created", new Date(character.createdAt).toLocaleDateString());
+        }
+        const actions = document.createElement("div");
+        actions.className = "character-actions";
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "delete-button";
+        deleteButton.type = "button";
+        deleteButton.textContent = "Delete character";
+        deleteButton.addEventListener("click", async () => {
+          if (!window.confirm(`Permanently delete ${character.name}? This cannot be undone.`)) return;
+          deleteButton.disabled = true;
+          setMessage(`Deleting ${character.name}...`);
+          try {
+            await apiRequest(`/api/auth/characters/${encodeURIComponent(character.id)}`, user, {
+              method: "DELETE",
+            });
+            allCharacters = allCharacters.filter((entry) => entry.id !== character.id);
+            renderCharacters(allCharacters, user);
+            setMessage(`${character.name} was deleted.`);
+          } catch (error) {
+            setError(error.message || `Could not delete ${character.name}.`);
+            deleteButton.disabled = false;
+          }
+        });
+        actions.append(deleteButton);
+        copy.append(className, name, lineage, details, actions);
+        card.append(art, copy);
+        return card;
+      }
+
+      function renderCharacters(characters, user) {
+        if (!Array.isArray(characters)) throw new Error("The character list response has an invalid format.");
+        allCharacters = characters;
+        const visibleCharacters = selectedServer
+          ? characters.filter((character) => character.serverId === selectedServer.id)
+          : characters;
+        grid.replaceChildren();
+        document.getElementById("character-count").textContent =
+          `${visibleCharacters.length} CHARACTER${visibleCharacters.length === 1 ? "" : "S"}`;
+        document.getElementById("roster-copy").textContent = selectedServer
+          ? `${visibleCharacters.length} saved character${visibleCharacters.length === 1 ? "" : "s"} in ${selectedServer.name}.`
+          : `${visibleCharacters.length} saved character${visibleCharacters.length === 1 ? "" : "s"} linked to your account.`;
+        document.getElementById("primary-create-link").href = createCharacterUrl();
+        document.getElementById("primary-create-link").textContent = selectedServer
+          ? "Create in this realm"
+          : "Choose a realm";
+        document.getElementById("empty-create-link").href = createCharacterUrl();
+        document.getElementById("empty-create-link").textContent = selectedServer
+          ? "Create in this realm"
+          : "Choose a realm";
+        document.getElementById("empty-copy").textContent = selectedServer
+          ? `No characters are registered in ${selectedServer.name}. Create one to begin your journey.`
+          : "No characters are linked to your account yet. Choose a realm to create your first champion.";
+        emptyState.hidden = visibleCharacters.length !== 0;
+        grid.hidden = visibleCharacters.length === 0;
+        visibleCharacters.forEach((character) => grid.append(renderCharacter(character, user)));
+
+        if (visibleCharacters.length > 0) {
+          const addCard = document.createElement("a");
+          addCard.className = "add-card";
+          addCard.href = createCharacterUrl();
+          const icon = document.createElement("span");
+          icon.className = "add-icon";
+          icon.textContent = "+";
+          const title = document.createElement("strong");
+          title.textContent = "Forge another champion";
+          const description = document.createElement("span");
+          description.textContent = selectedServer
+            ? `Create another character in ${selectedServer.name}.`
+            : "Choose a realm to begin character creation.";
+          addCard.append(icon, title, description);
+          grid.append(addCard);
+        }
+        setMessage("Character roster loaded.");
+      }
+
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          window.location.replace("/");
+          return;
+        }
+        try {
+          await reload(user);
+          if (!user.emailVerified) {
+            await signOut(auth);
+            window.location.replace("/");
+            return;
+          }
+          if (requestedServerId) {
+            allServers = await apiRequest("/api/auth/servers", user);
+            selectedServer = allServers.find((server) => server.id === requestedServerId);
+            if (!selectedServer) {
+              throw new Error("The selected realm is no longer available. Return to the server list.");
+            }
+          }
+          renderCharacters(await apiRequest("/api/auth/characters", user), user);
+        } catch (error) {
+          if (/backend session|sign-in session|another device/i.test(error.message || "")) {
+            await signOut(auth);
+            sessionStorage.setItem("godfall-session-ended", "account-switched");
+            window.location.replace("/?reason=account-switched");
+            return;
+          }
+          setError(error.message || "Could not load characters linked to your account.");
+        }
+      });
+    </script>
+  </body>
+</html>

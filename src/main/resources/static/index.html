@@ -1,0 +1,1403 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#060a12" />
+    <title>Godfall Arena | Enter the Arena</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #060a12;
+        --panel: rgba(9, 15, 29, 0.88);
+        --panel-edge: rgba(103, 232, 249, 0.23);
+        --gold: #67e8f9;
+        --gold-bright: #c9f8ff;
+        --ember: #a78bfa;
+        --text: #f3f8ff;
+        --muted: #929eb3;
+        --font: Inter, "Segoe UI", system-ui, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        overflow-x: hidden;
+        background:
+          radial-gradient(
+            ellipse at 16% 42%,
+            rgba(13, 148, 180, 0.16),
+            transparent 34%
+          ),
+          radial-gradient(
+            ellipse at 78% 25%,
+            rgba(109, 72, 196, 0.14),
+            transparent 34%
+          ),
+          linear-gradient(145deg, #060a12 0%, #09101c 52%, #080914 100%);
+        color: var(--text);
+        font-family: var(--font);
+      }
+
+      body::before {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background-image:
+          linear-gradient(rgba(103, 232, 249, 0.035) 1px, transparent 1px),
+          linear-gradient(
+            90deg,
+            rgba(103, 232, 249, 0.035) 1px,
+            transparent 1px
+          );
+        background-size: 64px 64px;
+        content: "";
+        mask-image: radial-gradient(
+          ellipse at center,
+          black 10%,
+          transparent 82%
+        );
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      .page-shell {
+        width: min(100% - 40px, 1180px);
+        min-height: 100vh;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .topbar {
+        min-height: 76px;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 28px;
+        border-bottom: 1px solid rgba(103, 232, 249, 0.12);
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 13px;
+        color: var(--text);
+        text-decoration: none;
+      }
+
+      .brand-crest {
+        width: 42px;
+        height: 48px;
+        display: grid;
+        place-items: center;
+        color: var(--gold);
+      }
+
+      .brand-crest svg {
+        width: 100%;
+        height: 100%;
+      }
+      .brand-name {
+        font-size: 0.77rem;
+        font-weight: 800;
+        letter-spacing: 0.19em;
+      }
+      .brand-name span {
+        display: block;
+        margin-top: 3px;
+        color: var(--gold);
+        font-size: 0.63rem;
+        letter-spacing: 0.36em;
+      }
+
+      .realm-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 14px;
+        border: 1px solid rgba(103, 232, 249, 0.15);
+        border-radius: 999px;
+        background: rgba(8, 20, 33, 0.62);
+        color: #bbd5e0;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.17em;
+        text-transform: uppercase;
+      }
+
+      .site-nav {
+        display: flex;
+        justify-content: center;
+        gap: clamp(18px, 3vw, 42px);
+      }
+
+      .site-nav a {
+        color: #aebbd0;
+        font-size: 0.66rem;
+        font-weight: 750;
+        letter-spacing: 0.14em;
+        text-decoration: none;
+        text-transform: uppercase;
+        transition: color 150ms ease;
+      }
+
+      .site-nav a:hover {
+        color: var(--gold-bright);
+      }
+
+      .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #55f2cb;
+        box-shadow: 0 0 12px rgba(85, 242, 203, 0.8);
+      }
+
+      .arena-layout {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 26px;
+        padding: 24px 0 42px;
+      }
+
+      .arena-intro {
+        position: relative;
+        width: 100%;
+        min-height: 285px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        isolation: isolate;
+        text-align: center;
+      }
+
+      .arena-intro::before {
+        position: absolute;
+        z-index: -2;
+        inset: -65% -45% -35%;
+        background: repeating-conic-gradient(
+          from -8deg at 50% 60%,
+          rgba(247, 190, 91, 0.1) 0deg 5deg,
+          transparent 5deg 16deg
+        );
+        content: "";
+        mask-image: radial-gradient(
+          ellipse at 50% 58%,
+          black 0%,
+          transparent 70%
+        );
+        pointer-events: none;
+      }
+
+      .arena-art {
+        position: absolute;
+        z-index: -1;
+        top: 50%;
+        left: 50%;
+        width: min(50vw, 540px);
+        aspect-ratio: 1;
+        transform: translate(-50%, -50%);
+        border: 1px solid rgba(103, 232, 249, 0.2);
+        border-radius: 50%;
+        background:
+          radial-gradient(
+            circle,
+            rgba(34, 211, 238, 0.12) 0 12%,
+            transparent 12.5% 33%,
+            rgba(103, 232, 249, 0.08) 33.2% 33.6%,
+            transparent 34%
+          ),
+          conic-gradient(
+            from 25deg,
+            transparent 0 11%,
+            rgba(103, 232, 249, 0.4) 11.2% 11.5%,
+            transparent 11.7% 47%,
+            rgba(167, 139, 250, 0.44) 47.2% 47.5%,
+            transparent 47.7% 100%
+          );
+        box-shadow:
+          0 0 100px rgba(34, 211, 238, 0.12),
+          inset 0 0 90px rgba(103, 232, 249, 0.07);
+        animation: orbital-turn 48s linear infinite;
+      }
+
+      .arena-art::before,
+      .arena-art::after {
+        position: absolute;
+        inset: 9%;
+        border: 1px solid rgba(103, 232, 249, 0.16);
+        border-radius: 50%;
+        content: "";
+      }
+
+      .arena-art::before {
+        transform: rotateX(68deg) rotateZ(-24deg);
+      }
+
+      .arena-art::after {
+        inset: 19%;
+        border-color: rgba(167, 139, 250, 0.32);
+        transform: rotate(45deg) scaleX(0.72);
+      }
+
+      .intro-kicker,
+      .panel-kicker {
+        color: var(--gold);
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.23em;
+        text-transform: uppercase;
+      }
+
+      .intro-kicker {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+      .intro-kicker::before {
+        width: 34px;
+        height: 1px;
+        background: var(--ember);
+        content: "";
+      }
+
+      h1 {
+        max-width: 700px;
+        margin: 21px 0 16px;
+        font-size: clamp(3.4rem, 8vw, 7.3rem);
+        font-weight: 900;
+        line-height: 0.84;
+        letter-spacing: -0.07em;
+        text-transform: uppercase;
+        background: linear-gradient(110deg, #f8fcff 12%, #c7f7ff 72%, #9cb9ff);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      h1 span {
+        display: block;
+        margin-top: 14px;
+        color: var(--gold);
+        font-size: 0.58em;
+        letter-spacing: 0.28em;
+      }
+
+      .intro-copy {
+        max-width: 520px;
+        margin: 23px 0 0;
+        color: #a8b4c6;
+        font-size: 1rem;
+        line-height: 1.8;
+      }
+
+      .arena-motto {
+        margin-top: 22px;
+        color: #c5d5e5;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+      }
+
+      .arena-motto span {
+        padding: 0 12px;
+        color: var(--ember);
+      }
+
+      .hero-actions {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 26px;
+      }
+
+      .hero-cta {
+        min-width: 160px;
+        min-height: 48px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 20px;
+        border: 1px solid rgba(103, 232, 249, 0.34);
+        border-radius: 5px;
+        color: #e7fbff;
+        cursor: pointer;
+        font: inherit;
+        font-size: 0.7rem;
+        font-weight: 850;
+        letter-spacing: 0.1em;
+        text-decoration: none;
+        text-transform: uppercase;
+        transition:
+          transform 160ms ease,
+          box-shadow 160ms ease,
+          border-color 160ms ease,
+          filter 160ms ease;
+      }
+
+      .hero-cta:hover {
+        transform: translateY(-2px);
+        border-color: var(--gold);
+        box-shadow: 0 9px 28px rgba(34, 211, 238, 0.14);
+      }
+
+      .hero-cta-primary {
+        border-color: rgba(255, 230, 172, 0.86);
+        background: linear-gradient(105deg, #f8bd58, #ee872d 58%, #d95d19);
+        color: #17120a;
+        box-shadow: 0 9px 28px rgba(238, 135, 45, 0.2);
+      }
+
+      .hero-cta-primary:hover {
+        filter: brightness(1.08);
+        border-color: #fff0c2;
+        box-shadow: 0 12px 32px rgba(238, 135, 45, 0.3);
+      }
+
+      .hero-cta-secondary {
+        background: linear-gradient(
+          180deg,
+          rgba(27, 49, 68, 0.92),
+          rgba(11, 23, 38, 0.95)
+        );
+      }
+
+      .hero-cta-tertiary {
+        border-color: rgba(143, 180, 213, 0.18);
+        background: rgba(16, 29, 45, 0.84);
+      }
+
+      .hero-cta:focus-visible {
+        outline: 2px solid var(--gold-bright);
+        outline-offset: 3px;
+      }
+
+      .auth-panel {
+        position: relative;
+        width: min(100%, 520px);
+        padding: clamp(26px, 4vw, 42px);
+        border: 1px solid var(--panel-edge);
+        border-radius: 22px;
+        background: linear-gradient(
+          145deg,
+          rgba(13, 25, 45, 0.94),
+          var(--panel)
+        );
+        backdrop-filter: blur(18px);
+        box-shadow:
+          0 28px 90px rgba(0, 0, 0, 0.48),
+          0 0 54px rgba(34, 211, 238, 0.055),
+          inset 0 1px rgba(255, 255, 255, 0.07);
+      }
+
+      .access-strip {
+        width: min(100%, 900px);
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-top: 6px;
+        border: 1px solid rgba(103, 232, 249, 0.22);
+        border-radius: 7px;
+        background: linear-gradient(
+          105deg,
+          rgba(10, 25, 42, 0.94),
+          rgba(12, 24, 43, 0.92)
+        );
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
+      }
+
+      .access-item {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        padding: 15px 20px;
+        border-right: 1px solid rgba(103, 232, 249, 0.12);
+      }
+
+      .access-item:last-child {
+        border-right: 0;
+      }
+
+      .access-label {
+        color: #8193aa;
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+
+      .access-value {
+        color: #e6f4ff;
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+
+      .auth-panel::before,
+      .auth-panel::after {
+        position: absolute;
+        width: 28px;
+        height: 28px;
+        border-color: var(--gold);
+        content: "";
+        pointer-events: none;
+      }
+
+      .auth-panel::before {
+        top: -1px;
+        left: -1px;
+        border-top: 2px solid;
+        border-left: 2px solid;
+      }
+
+      .auth-panel::after {
+        right: -1px;
+        bottom: -1px;
+        border-right: 2px solid;
+        border-bottom: 2px solid;
+      }
+
+      .panel-kicker {
+        color: #8ceaf5;
+        font-size: 0.62rem;
+      }
+
+      .auth-panel h2 {
+        margin: 13px 0 7px;
+        font-size: 1.85rem;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+      }
+
+      .auth-description {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      .auth-form {
+        display: grid;
+        gap: 16px;
+        margin-top: 27px;
+      }
+
+      .auth-field {
+        display: grid;
+        gap: 8px;
+        color: #c6d6e8;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .auth-field[hidden] {
+        display: none;
+      }
+
+      .auth-field input {
+        width: 100%;
+        min-height: 48px;
+        padding: 0 14px;
+        border: 1px solid rgba(143, 180, 213, 0.2);
+        border-radius: 10px;
+        outline: none;
+        background: rgba(4, 9, 18, 0.78);
+        color: var(--text);
+        font-size: 0.9rem;
+        letter-spacing: 0;
+        text-transform: none;
+        transition:
+          border-color 160ms ease,
+          box-shadow 160ms ease,
+          background 160ms ease;
+      }
+
+      .auth-field input::placeholder {
+        color: #6d819b;
+      }
+      .auth-field input:focus {
+        border-color: var(--gold);
+        background: rgba(6, 14, 26, 0.96);
+        box-shadow:
+          0 0 0 3px rgba(103, 232, 249, 0.11),
+          0 0 24px rgba(34, 211, 238, 0.08);
+      }
+
+      .auth-submit {
+        min-height: 52px;
+        margin-top: 4px;
+        border: 1px solid rgba(255, 230, 172, 0.86);
+        border-radius: 10px;
+        background: linear-gradient(105deg, #f8bd58, #ee872d 58%, #d95d19);
+        color: #17120a;
+        cursor: pointer;
+        font-size: 0.76rem;
+        font-weight: 900;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        box-shadow: 0 8px 28px rgba(238, 135, 45, 0.2);
+        transition:
+          filter 160ms ease,
+          transform 160ms ease,
+          box-shadow 160ms ease;
+      }
+
+      .auth-submit:hover {
+        filter: brightness(1.13);
+        transform: translateY(-1px);
+        box-shadow: 0 12px 34px rgba(238, 135, 45, 0.3);
+      }
+      .auth-submit:disabled {
+        cursor: wait;
+        opacity: 0.65;
+        transform: none;
+      }
+
+      .auth-resend {
+        min-height: 42px;
+        border: 1px solid rgba(103, 232, 249, 0.28);
+        border-radius: 9px;
+        background: rgba(103, 232, 249, 0.055);
+        color: var(--gold-bright);
+        cursor: pointer;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .auth-resend[hidden] {
+        display: none;
+      }
+      .auth-resend:disabled {
+        cursor: wait;
+        opacity: 0.6;
+      }
+
+      .auth-status {
+        min-height: 1.35em;
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.79rem;
+        line-height: 1.5;
+      }
+
+      .auth-status[data-state="error"] {
+        color: #f09a81;
+      }
+      .auth-status[data-state="success"] {
+        color: #b5ce9e;
+      }
+
+      .session-ended-modal {
+        width: min(calc(100% - 32px), 440px);
+        padding: 0;
+        border: 1px solid rgba(103, 232, 249, 0.32);
+        border-radius: 14px;
+        background: #0b1322;
+        color: var(--text);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.72);
+      }
+
+      .session-ended-modal::backdrop {
+        background: rgba(3, 7, 14, 0.82);
+        backdrop-filter: blur(5px);
+      }
+
+      .session-ended-content {
+        display: grid;
+        gap: 14px;
+        padding: 28px;
+        text-align: center;
+      }
+
+      .session-ended-icon {
+        width: 48px;
+        height: 48px;
+        display: grid;
+        place-items: center;
+        margin: 0 auto;
+        border: 1px solid rgba(240, 154, 129, 0.42);
+        border-radius: 50%;
+        background: rgba(240, 154, 129, 0.09);
+        color: #f09a81;
+        font-size: 1.35rem;
+        font-weight: 900;
+      }
+
+      .session-ended-modal h2 {
+        margin: 0;
+        font-size: 1.35rem;
+      }
+
+      .session-ended-modal p {
+        margin: 0;
+        color: #abb9cc;
+        font-size: 0.88rem;
+        line-height: 1.55;
+      }
+
+      .session-ended-modal button {
+        min-height: 46px;
+        margin-top: 6px;
+        border: 1px solid rgba(103, 232, 249, 0.38);
+        border-radius: 9px;
+        background: linear-gradient(105deg, rgba(103, 232, 249, 0.18), rgba(167, 139, 250, 0.16));
+        color: var(--gold-bright);
+        cursor: pointer;
+        font-size: 0.72rem;
+        font-weight: 850;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+      }
+
+      .auth-switch {
+        margin: 22px 0 0;
+        padding-top: 18px;
+        border-top: 1px solid rgba(143, 180, 213, 0.14);
+        color: var(--muted);
+        font-size: 0.82rem;
+        text-align: center;
+      }
+
+      .auth-switch button {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--gold-bright);
+        cursor: pointer;
+        font: inherit;
+        font-weight: 700;
+      }
+
+      .auth-switch button:hover {
+        text-decoration: underline;
+      }
+
+      .panel-footnote {
+        margin: 23px 0 0;
+        color: #73869e;
+        font-size: 0.63rem;
+        letter-spacing: 0.1em;
+        line-height: 1.7;
+        text-align: center;
+        text-transform: uppercase;
+      }
+
+      .page-footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 20px 0;
+        border-top: 1px solid rgba(103, 232, 249, 0.12);
+        color: #718198;
+        font-size: 0.63rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      @media (max-width: 850px) {
+        .page-shell {
+          width: min(100% - 40px, 720px);
+        }
+        .topbar {
+          grid-template-columns: auto 1fr;
+          gap: 14px;
+          padding: 14px 0;
+        }
+        .site-nav {
+          grid-column: 1 / -1;
+          grid-row: 2;
+          justify-content: center;
+        }
+        .arena-layout {
+          gap: 24px;
+          padding: 22px 0 42px;
+        }
+        .arena-intro {
+          min-height: 270px;
+        }
+        .arena-art {
+          left: 50%;
+          width: min(78vw, 440px);
+        }
+        h1 {
+          font-size: clamp(3.6rem, 13vw, 6rem);
+        }
+        .intro-copy {
+          max-width: 480px;
+        }
+        .hero-actions {
+          gap: 10px;
+        }
+        .arena-motto {
+          margin-top: 25px;
+        }
+        .auth-panel {
+          width: min(100%, 520px);
+        }
+      }
+
+      @media (max-width: 480px) {
+        .page-shell {
+          width: min(100% - 28px, 440px);
+        }
+        .topbar {
+          min-height: 72px;
+          grid-template-columns: 1fr auto;
+          gap: 12px;
+        }
+        .site-nav {
+          grid-column: 1 / -1;
+          grid-row: 2;
+          justify-content: center;
+          padding-bottom: 12px;
+        }
+        .realm-status {
+          font-size: 0.55rem;
+          letter-spacing: 0.1em;
+          grid-column: 2;
+          grid-row: 1;
+          justify-self: end;
+          padding: 8px 10px;
+        }
+        .brand-name {
+          font-size: 0.7rem;
+        }
+        .brand-crest {
+          width: 34px;
+          height: 40px;
+        }
+        .arena-layout {
+          padding-top: 16px;
+        }
+        .arena-intro {
+          min-height: 240px;
+        }
+        .intro-copy {
+          max-width: 360px;
+          font-size: 0.9rem;
+        }
+        .arena-motto {
+          font-size: 0.58rem;
+          letter-spacing: 0.17em;
+        }
+        .arena-motto span {
+          padding: 0 6px;
+        }
+        .auth-panel {
+          padding: 27px 22px;
+        }
+        .hero-actions {
+          width: 100%;
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .hero-cta {
+          width: 100%;
+        }
+        .access-strip {
+          grid-template-columns: 1fr;
+        }
+        .access-item {
+          padding: 12px 16px;
+          border-right: 0;
+          border-bottom: 1px solid rgba(103, 232, 249, 0.12);
+        }
+        .access-item:last-child {
+          border-bottom: 0;
+        }
+        .page-footer {
+          flex-direction: column;
+          font-size: 0.57rem;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+        }
+      }
+
+      @keyframes orbital-turn {
+        to {
+          rotate: 360deg;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="Godfall Arena home">
+          <span class="brand-crest" aria-hidden="true">
+            <svg viewBox="0 0 48 56" fill="none">
+              <path
+                d="M24 2 44 10v17c0 12-8 21-20 27C12 48 4 39 4 27V10L24 2Z"
+                stroke="currentColor"
+                stroke-width="1.5"
+              />
+              <path
+                d="m24 12 3.7 8.3 8.8.8-6.7 5.8 2 8.6-7.8-4.5-7.8 4.5 2-8.6-6.7-5.8 8.8-.8L24 12Z"
+                stroke="currentColor"
+                stroke-width="1.3"
+              />
+            </svg>
+          </span>
+          <span class="brand-name">GODFALL <span>ARENA</span></span>
+        </a>
+        <nav class="site-nav" aria-label="Page sections">
+          <a href="#arena-intro">Realm</a>
+          <a href="#auth-panel">Account</a>
+        </nav>
+        <div class="realm-status">
+          <span class="status-dot"></span> Your trial begins here
+        </div>
+      </header>
+
+      <main class="arena-layout">
+        <section
+          class="arena-intro"
+          id="arena-intro"
+          aria-labelledby="game-title"
+        >
+          <div class="arena-art" aria-hidden="true"></div>
+          <p class="intro-kicker">The gates are open</p>
+          <h1 id="game-title">Godfall <span>Arena</span></h1>
+          <p class="intro-copy">
+            A new arena awaits. Sign in to return to your realm or create an
+            account to begin your journey.
+          </p>
+          <p class="arena-motto">
+            Clash <span>/</span> Conquer <span>/</span> Ascend
+          </p>
+          <div class="hero-actions" aria-label="Account actions">
+            <button
+              class="hero-cta hero-cta-primary"
+              id="hero-sign-in"
+              type="button"
+            >
+              Enter the arena
+            </button>
+            <button
+              class="hero-cta hero-cta-secondary"
+              id="hero-create-account"
+              type="button"
+            >
+              Create account
+            </button>
+            <a class="hero-cta hero-cta-tertiary" href="#access-strip"
+              >Account access</a
+            >
+          </div>
+        </section>
+
+        <section
+          class="auth-panel"
+          id="auth-panel"
+          aria-labelledby="auth-title"
+        >
+          <p class="panel-kicker">Warrior identification</p>
+          <h2 id="auth-title">Welcome back</h2>
+          <p class="auth-description" id="auth-description">
+            Sign in to return to the arena.
+          </p>
+
+          <form class="auth-form" id="auth-form">
+            <label class="auth-field" id="name-field" hidden>
+              Warrior name
+              <input
+                id="auth-name"
+                name="name"
+                autocomplete="name"
+                maxlength="100"
+                placeholder="How should we call you?"
+              />
+            </label>
+            <label class="auth-field">
+              Email
+              <input
+                id="auth-email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+                required
+              />
+            </label>
+            <label class="auth-field">
+              Password
+              <input
+                id="auth-password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                minlength="8"
+                placeholder="Enter your password"
+                required
+              />
+            </label>
+            <p
+              class="auth-status"
+              id="auth-status"
+              role="status"
+              aria-live="polite"
+            ></p>
+            <button class="auth-submit" id="auth-submit" type="submit">
+              Enter the arena
+            </button>
+            <button
+              class="auth-resend"
+              id="resend-verification"
+              type="button"
+              hidden
+            >
+              Resend verification email
+            </button>
+            <button
+              class="auth-resend"
+              id="check-verification"
+              type="button"
+              hidden
+            >
+              I verified my email — check again
+            </button>
+          </form>
+
+          <p class="auth-switch" id="auth-switch">
+            New warrior?
+            <button type="button" data-switch-auth="register">
+              Create an account
+            </button>
+          </p>
+          <p class="panel-footnote">
+            Account secured by Firebase<br />Your warrior profile is saved to
+            the realm
+          </p>
+        </section>
+
+        <section
+          class="access-strip"
+          id="access-strip"
+          aria-label="Account access information"
+        >
+          <div class="access-item">
+            <span class="access-label">Authentication</span>
+            <span class="access-value">Firebase secured</span>
+          </div>
+          <div class="access-item">
+            <span class="access-label">Account access</span>
+            <span class="access-value">Verified email required</span>
+          </div>
+          <div class="access-item">
+            <span class="access-label">Realm session</span>
+            <span class="access-value">Protected sign-in</span>
+          </div>
+        </section>
+      </main>
+
+      <footer class="page-footer">
+        <span>Godfall Arena</span>
+        <span>Enter with honor. Leave your mark.</span>
+      </footer>
+    </div>
+
+    <dialog class="session-ended-modal" id="session-ended-modal" aria-labelledby="session-ended-title">
+      <div class="session-ended-content">
+        <div class="session-ended-icon" aria-hidden="true">!</div>
+        <h2 id="session-ended-title">Session ended</h2>
+        <p id="session-ended-message">
+          You were logged out because this account was signed in on another device or account.
+        </p>
+        <button type="button" id="session-ended-close">Return to sign in</button>
+      </div>
+    </dialog>
+
+    <script src="./firebase-config.js"></script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+      import {
+        createUserWithEmailAndPassword,
+        getAuth,
+        onAuthStateChanged,
+        reload,
+        sendEmailVerification,
+        signInWithEmailAndPassword,
+        signOut,
+        updateProfile,
+      } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+      const authForm = document.getElementById("auth-form");
+      const authStatus = document.getElementById("auth-status");
+      const nameField = document.getElementById("name-field");
+      const passwordInput = document.getElementById("auth-password");
+      const resendButton = document.getElementById("resend-verification");
+      const checkVerificationButton =
+        document.getElementById("check-verification");
+      const sessionEndedModal = document.getElementById("session-ended-modal");
+      const sessionEndedMessage = document.getElementById("session-ended-message");
+      const firebaseConfig = window.FIREBASE_CONFIG;
+      const configValues = firebaseConfig
+        ? [
+            firebaseConfig.apiKey,
+            firebaseConfig.authDomain,
+            firebaseConfig.projectId,
+            firebaseConfig.appId,
+          ]
+        : [];
+      const firebaseConfigured =
+        configValues.length === 4 &&
+        configValues.every(
+          (value) =>
+            typeof value === "string" &&
+            value.trim() !== "" &&
+            !value.startsWith("REPLACE_WITH_"),
+        );
+      const firebaseApp = firebaseConfigured
+        ? initializeApp(firebaseConfig)
+        : null;
+      const firebaseAuth = firebaseApp ? getAuth(firebaseApp) : null;
+      let authMode = "login";
+      let authSubmissionActive = false;
+      const sessionEndedReason =
+        new URLSearchParams(window.location.search).get("reason") ||
+        sessionStorage.getItem("godfall-session-ended");
+
+      function showSessionEndedModal(reason) {
+        if (!sessionEndedModal) return;
+        sessionEndedMessage.textContent =
+          reason === "account-switched"
+            ? "You were logged out because this account was signed in on another device or with another account."
+            : "Your secure session has ended. Sign in again to continue.";
+        if (!sessionEndedModal.open) sessionEndedModal.showModal();
+      }
+
+      document
+        .getElementById("session-ended-close")
+        .addEventListener("click", () => sessionEndedModal.close());
+
+      if (sessionEndedReason) {
+        showSessionEndedModal(sessionEndedReason);
+        sessionStorage.removeItem("godfall-session-ended");
+        window.history.replaceState({}, "", "/");
+      }
+
+      async function readApiResponse(response) {
+        const responseText = await response.text();
+        try {
+          return responseText ? JSON.parse(responseText) : {};
+        } catch {
+          throw new Error(
+            `The backend returned a non-JSON response (HTTP ${response.status}).`,
+          );
+        }
+      }
+
+      async function establishBackendSession(user) {
+        await user.getIdToken(true);
+        const response = await fetch("/api/auth/session", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            Authorization: `Bearer ${await user.getIdToken()}`,
+          },
+        });
+        const result = await readApiResponse(response);
+        if (!response.ok) {
+          throw new Error(
+            result.message || `The backend returned HTTP ${response.status}.`,
+          );
+        }
+        redirectForRole(result.user?.role);
+      }
+
+      function redirectForRole(role) {
+        window.location.replace(role === "gamemaster" ? "/gamemaster" : "/dashboard.html");
+      }
+
+      async function hasBackendSession(user) {
+        const response = await fetch("/api/auth/session", {
+          credentials: "same-origin",
+          headers: {
+            Authorization: `Bearer ${await user.getIdToken()}`,
+          },
+        });
+        if (response.ok) {
+          const result = await readApiResponse(response);
+          return result.role || "user";
+        }
+        if (response.status === 401) return null;
+        const result = await readApiResponse(response);
+        throw new Error(
+          result.message || `The backend returned HTTP ${response.status}.`,
+        );
+      }
+
+      function setAuthMode(mode) {
+        authMode = mode;
+        const registering = mode === "register";
+        document.getElementById("auth-title").textContent = registering
+          ? "Join the arena"
+          : "Welcome back";
+        document.getElementById("auth-description").textContent = registering
+          ? "Create your warrior account and claim your place."
+          : "Sign in to return to the arena.";
+        document.getElementById("auth-submit").textContent = registering
+          ? "Create warrior"
+          : "Enter the arena";
+        document.getElementById("auth-switch").innerHTML = registering
+          ? 'Already have an account? <button type="button" data-switch-auth="login">Sign in</button>'
+          : 'New warrior? <button type="button" data-switch-auth="register">Create an account</button>';
+        nameField.hidden = !registering;
+        document.getElementById("auth-name").required = registering;
+        resendButton.hidden = true;
+        checkVerificationButton.hidden = true;
+        passwordInput.autocomplete = registering
+          ? "new-password"
+          : "current-password";
+        authStatus.textContent = "";
+        authStatus.removeAttribute("data-state");
+      }
+
+      setAuthMode("login");
+
+      document
+        .getElementById("hero-sign-in")
+        .addEventListener("click", (event) => {
+          event.preventDefault();
+          setAuthMode("login");
+          document.getElementById("auth-panel").scrollIntoView({
+            behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
+              .matches
+              ? "auto"
+              : "smooth",
+            block: "center",
+          });
+          document.getElementById("auth-email").focus({ preventScroll: true });
+        });
+
+      document
+        .getElementById("auth-switch")
+        .addEventListener("click", (event) => {
+          const switchButton = event.target.closest("[data-switch-auth]");
+          if (switchButton) setAuthMode(switchButton.dataset.switchAuth);
+        });
+
+      document
+        .getElementById("hero-create-account")
+        .addEventListener("click", () => {
+          setAuthMode("register");
+          document.getElementById("auth-name").focus();
+        });
+
+      resendButton.addEventListener("click", async () => {
+        const user = firebaseAuth?.currentUser;
+        if (!user || user.emailVerified) {
+          authStatus.textContent =
+            "Sign in again to request a verification email.";
+          authStatus.dataset.state = "error";
+          return;
+        }
+
+        const resendCooldownKey = `godfallarena-verification-resend-until-${user.uid}`;
+        const cooldownUntil = Number(
+          sessionStorage.getItem(resendCooldownKey) || 0,
+        );
+        if (cooldownUntil > Date.now()) {
+          const secondsLeft = Math.ceil((cooldownUntil - Date.now()) / 1000);
+          authStatus.textContent = `Please wait ${secondsLeft} seconds before requesting another email.`;
+          authStatus.dataset.state = "error";
+          return;
+        }
+
+        resendButton.disabled = true;
+        sessionStorage.setItem(resendCooldownKey, String(Date.now() + 60_000));
+        authStatus.textContent = "Sending verification email...";
+        authStatus.removeAttribute("data-state");
+        try {
+          await sendEmailVerification(user);
+          authStatus.textContent =
+            "Verification email sent. Check your inbox and spam folder.";
+          authStatus.dataset.state = "success";
+        } catch (error) {
+          authStatus.textContent =
+            error.code === "auth/too-many-requests"
+              ? "Firebase has temporarily limited email requests. Wait a few minutes and check your inbox before trying again."
+              : error.message || "Could not send the verification email.";
+          authStatus.dataset.state = "error";
+        } finally {
+          resendButton.disabled = false;
+        }
+      });
+
+      checkVerificationButton.addEventListener("click", async () => {
+        const user = firebaseAuth?.currentUser;
+        if (!user) {
+          authStatus.textContent = "Sign in again after verifying your email.";
+          authStatus.dataset.state = "error";
+          return;
+        }
+
+        checkVerificationButton.disabled = true;
+        authStatus.textContent = "Checking your email verification...";
+        authStatus.removeAttribute("data-state");
+        try {
+          await reload(user);
+          if (!user.emailVerified) {
+            authStatus.textContent =
+              "Firebase still reports this email as unverified. Open the latest verification link, then check again.";
+            authStatus.dataset.state = "error";
+            return;
+          }
+          await establishBackendSession(user);
+        } catch (error) {
+          authStatus.textContent =
+            error.message || "Could not check email verification.";
+          authStatus.dataset.state = "error";
+        } finally {
+          checkVerificationButton.disabled = false;
+        }
+      });
+
+      onAuthStateChanged(firebaseAuth, async (user) => {
+        if (!user || authMode !== "login" || authSubmissionActive) return;
+
+        if (sessionEndedReason) {
+          await signOut(firebaseAuth);
+          showSessionEndedModal(sessionEndedReason);
+          return;
+        }
+
+        try {
+          await reload(user);
+          if (!user.emailVerified) {
+            authStatus.textContent =
+              "Your email is not verified. Check your inbox, then use the verification buttons below.";
+            authStatus.dataset.state = "error";
+            resendButton.hidden = false;
+            checkVerificationButton.hidden = false;
+            return;
+          }
+
+          await user.getIdToken(true);
+          const role = await hasBackendSession(user);
+          if (role) {
+            redirectForRole(role);
+            return;
+          }
+          await signOut(firebaseAuth);
+          authStatus.textContent = "This account signed in on another device. Please sign in there or sign in again here.";
+          authStatus.dataset.state = "error";
+        } catch (error) {
+          authStatus.textContent =
+            error.message || "Could not restore your sign-in session.";
+          authStatus.dataset.state = "error";
+        }
+      });
+
+      authForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (window.location.protocol === "file:") {
+          authStatus.textContent =
+            "Open Godfall Arena through Spring Boot at http://localhost:8080, not as a local file.";
+          authStatus.dataset.state = "error";
+          return;
+        }
+        if (!firebaseAuth) {
+          authStatus.textContent =
+            "Firebase config did not load. Check that firebase-config.js is served beside this page.";
+          authStatus.dataset.state = "error";
+          return;
+        }
+
+        const submitButton = document.getElementById("auth-submit");
+        const formData = new FormData(authForm);
+        submitButton.disabled = true;
+        authStatus.textContent = "Connecting to the realm...";
+        authStatus.removeAttribute("data-state");
+        authSubmissionActive = true;
+
+        try {
+          let user;
+          if (authMode === "register") {
+            const name = formData.get("name").trim();
+            const credential = await createUserWithEmailAndPassword(
+              firebaseAuth,
+              formData.get("email"),
+              formData.get("password"),
+            );
+            user = credential.user;
+            await updateProfile(user, { displayName: name });
+            await sendEmailVerification(user);
+            await signOut(firebaseAuth);
+            authStatus.textContent =
+              "Verification email sent. Verify your email, then sign in. Your profile will be saved after verification.";
+            authStatus.dataset.state = "success";
+            authForm.reset();
+            return;
+          } else {
+            const credential = await signInWithEmailAndPassword(
+              firebaseAuth,
+              formData.get("email"),
+              formData.get("password"),
+            );
+            user = credential.user;
+          }
+
+          await reload(user);
+          if (!user.emailVerified) {
+            authStatus.textContent =
+              "Your email is not verified. Check your inbox for the link we already sent.";
+            authStatus.dataset.state = "error";
+            resendButton.hidden = false;
+            checkVerificationButton.hidden = false;
+            return;
+          }
+
+          await establishBackendSession(user);
+        } catch (error) {
+          authStatus.textContent =
+            error.code === "auth/operation-not-allowed"
+              ? "Email/password sign-in is disabled. Enable it in Firebase Console under Authentication > Sign-in method."
+              : error.code === "auth/email-already-in-use"
+                ? "That email already has a Firebase account. Sign in instead."
+                : error.code === "auth/invalid-credential"
+                  ? "Email or password is incorrect."
+                  : error.code === "auth/weak-password"
+                    ? "Choose a password with at least 6 characters."
+                    : error.code === "auth/too-many-requests"
+                      ? "Firebase has temporarily limited requests. Wait a few minutes before trying again, and check your inbox for the verification email."
+                      : error.code === "PERMISSION_DENIED"
+                        ? "Realtime Database denied access. Publish database.rules.json in Firebase Console > Realtime Database > Rules."
+                        : error.code === "NETWORK_ERROR" ||
+                            error.message.includes("client is offline")
+                          ? "Cannot reach Realtime Database. Check the database URL, browser connection, and Firebase project."
+                          : error.message || "Could not complete the sign-in.";
+          authStatus.dataset.state = "error";
+        } finally {
+          submitButton.disabled = false;
+          authSubmissionActive = false;
+        }
+      });
+    </script>
+  </body>
+</html>
