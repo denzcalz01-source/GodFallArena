@@ -88,7 +88,9 @@
       .character-details { display: grid; gap: 7px; margin: 0; }
       .character-detail { display: flex; justify-content: space-between; gap: 9px; color: #8f9da3; font-size: 0.59rem; }
       .character-detail strong { overflow: hidden; color: #d7e2df; font-size: inherit; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
-      .character-actions { display: flex; margin-top: 16px; }
+      .character-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+      .start-button { min-height: 34px; display: inline-flex; align-items: center; justify-content: center; padding: 0 12px; border: 1px solid rgba(255, 230, 172, 0.72); border-radius: 4px; background: linear-gradient(105deg, #f8bd58, #ee872d 58%, #d95d19); color: #17120a; font: inherit; font-size: 0.55rem; font-weight: 850; letter-spacing: 0.09em; text-decoration: none; text-transform: uppercase; }
+      .start-button:hover { filter: brightness(1.08); }
       .delete-button { min-height: 34px; padding: 0 11px; border: 1px solid rgba(245, 120, 139, 0.38); border-radius: 4px; background: rgba(142, 40, 60, 0.16); color: #ffabb7; cursor: pointer; font: inherit; font-size: 0.55rem; font-weight: 850; letter-spacing: 0.09em; text-transform: uppercase; }
       .delete-button:hover { border-color: rgba(245, 120, 139, 0.75); background: rgba(142, 40, 60, 0.28); }
       .delete-button:disabled { cursor: wait; opacity: 0.55; }
@@ -284,6 +286,10 @@
         }
         const actions = document.createElement("div");
         actions.className = "character-actions";
+        const startLink = document.createElement("a");
+        startLink.className = "start-button";
+        startLink.href = `/play?characterId=${encodeURIComponent(character.id)}`;
+        startLink.textContent = "Start";
         const deleteButton = document.createElement("button");
         deleteButton.className = "delete-button";
         deleteButton.type = "button";
@@ -304,7 +310,7 @@
             deleteButton.disabled = false;
           }
         });
-        actions.append(deleteButton);
+        actions.append(startLink, deleteButton);
         copy.append(className, name, lineage, details, actions);
         card.append(art, copy);
         return card;

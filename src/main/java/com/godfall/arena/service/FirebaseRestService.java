@@ -345,7 +345,7 @@ public class FirebaseRestService {
 			throw exception;
 		}
 		return new GameCharacter(
-				characterId, uid, name, serverId, classType, lineage, bodyType, hairStyle, hairColor, faceStyle, null);
+				characterId, uid, name, serverId, classType, lineage, bodyType, hairStyle, hairColor, faceStyle, null, null, null);
 	}
 
 	public List<GameCharacter> getCharacters(String idToken, String uid) {
@@ -569,7 +569,11 @@ public class FirebaseRestService {
 				|| character.hairStyle() == null || !CHARACTER_HAIR_STYLES.contains(character.hairStyle())
 				|| character.hairColor() == null || !CHARACTER_HAIR_COLORS.contains(character.hairColor())
 				|| character.faceStyle() == null || !CHARACTER_FACE_STYLES.contains(character.faceStyle())
-				|| character.createdAt() == null || character.createdAt() < 0) {
+				|| character.createdAt() == null || character.createdAt() < 0
+				|| (character.x() == null) != (character.y() == null)
+				|| (character.x() != null
+						&& (!Double.isFinite(character.x()) || character.x() < 0 || character.x() > 3200
+								|| !Double.isFinite(character.y()) || character.y() < 0 || character.y() > 2400))) {
 			throw new InvalidCharacterDataException();
 		}
 		return new GameCharacter(
@@ -583,7 +587,9 @@ public class FirebaseRestService {
 				character.hairStyle(),
 				character.hairColor(),
 				character.faceStyle(),
-				character.createdAt());
+				character.createdAt(),
+				character.x(),
+				character.y());
 	}
 
 	private boolean isValidGameMasterEvent(String event) {
@@ -749,7 +755,9 @@ public class FirebaseRestService {
 			String hairStyle,
 			String hairColor,
 			String faceStyle,
-			Long createdAt) {}
+			Long createdAt,
+			Double x,
+			Double y) {}
 
 	private record LookupResponse(List<FirebaseUser> users) {}
 
@@ -773,7 +781,9 @@ public class FirebaseRestService {
 			String hairStyle,
 			String hairColor,
 			String faceStyle,
-			Long createdAt) {}
+			Long createdAt,
+			Double x,
+			Double y) {}
 
 	private record StoredProfile(
 			String uid, String name, String email, Boolean emailVerified, String role, Long createdAt, Long updatedAt) {}

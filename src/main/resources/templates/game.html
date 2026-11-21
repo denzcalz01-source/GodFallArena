@@ -95,6 +95,9 @@
       .server-option[aria-pressed="true"] .selection-indicator { display: inline; }
       .console-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 18px; padding-top: 18px; border-top: 1px solid rgba(143, 180, 213, 0.12); }
       .selection-message { min-height: 1.4em; margin: 0; color: #9eafc2; font-size: 0.7rem; line-height: 1.5; }
+      .fullscreen-button { min-height: 40px; padding: 0 14px; border: 1px solid rgba(103, 232, 249, 0.32); border-radius: 5px; background: rgba(18, 35, 54, 0.85); color: #d8f8ff; cursor: pointer; font: inherit; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+      .fullscreen-button:hover { border-color: var(--cyan); background: rgba(103, 232, 249, 0.1); }
+      .shell:fullscreen { width: 100%; min-height: 100vh; padding: 0 clamp(14px, 4vw, 48px); overflow-y: auto; background: linear-gradient(145deg, #060a12 0%, #0a111d 52%, #080914 100%); }
       .portal-footer { padding: 18px 0; border-top: 1px solid rgba(103, 232, 249, 0.12); color: #718198; font-size: 0.58rem; letter-spacing: 0.1em; text-align: center; text-transform: uppercase; }
 
       @media (max-width: 700px) {
@@ -170,6 +173,7 @@
 
           <div class="console-footer">
             <p class="selection-message" id="selection-message" role="status" aria-live="polite">Waiting for the server list...</p>
+            <button class="fullscreen-button" id="fullscreen-button" type="button">Enter fullscreen</button>
           </div>
         </section>
       </main>
@@ -193,6 +197,37 @@
       const loadStatus = document.getElementById("server-load-status");
       const selectionMessage = document.getElementById("selection-message");
       const recommendedLabel = document.getElementById("recommended-server");
+      const fullscreenButton = document.getElementById("fullscreen-button");
+      const fullscreenTarget = document.querySelector(".shell");
+
+      fullscreenButton.addEventListener("click", async () => {
+        try {
+          if (document.fullscreenElement) {
+            await document.exitFullscreen();
+            return;
+          }
+          if (typeof fullscreenTarget.requestFullscreen !== "function") {
+            throw new Error("Fullscreen is not supported by this browser.");
+          }
+          await fullscreenTarget.requestFullscreen();
+        } catch (error) {
+          selectionMessage.textContent = error.message || "Could not enter fullscreen. Your browser may not allow it.";
+          return;
+        }
+
+        const orientation = window.screen.orientation;
+        if (window.matchMedia("(pointer: coarse)").matches && typeof orientation?.lock === "function") {
+          try {
+            await orientation.lock("landscape");
+          } catch {
+            selectionMessage.textContent = "Fullscreen is on. Rotate your device to landscape if needed.";
+          }
+        }
+      });
+
+      document.addEventListener("fullscreenchange", () => {
+        fullscreenButton.textContent = document.fullscreenElement ? "Exit fullscreen" : "Enter fullscreen";
+      });
 
       function createElement(tagName, className, text) {
         const element = document.createElement(tagName);

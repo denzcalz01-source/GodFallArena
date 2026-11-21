@@ -18,3 +18,21 @@ Hosting.
 The existing Firebase Hosting deployment serves static assets only. Use the
 Render URL for the full application unless Firebase Hosting is later configured
 to proxy requests to the backend.
+
+## Online world prototype
+
+Each character card has a **Start** action that opens a small top-down world
+with animated low-poly 3D characters. Players on the same realm can move with
+WASD/arrow keys or the on-screen touch controls and see each other's live
+positions through Firebase Realtime Database. Characters resume at their last
+saved world location. Idle or disconnected player presence expires, while the
+character's saved location remains.
+
+The world is an early prototype, not a production MMORPG: movement is
+client-reported and there is not yet combat, progression, or an authoritative
+game server. The realtime player rules are in `database.rules.json`; after
+selecting the correct Firebase project, publish them with
+`firebase deploy --only database` so online visibility and saved locations work.
+On mobile, the game requests fullscreen landscape on entry. If the browser
+blocks the automatic request, tap **Fullscreen**; orientation locking requires
+a secure page and a user gesture in supported browsers.

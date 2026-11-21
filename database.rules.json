@@ -122,7 +122,7 @@
       "$uid": {
         ".read": "auth != null && auth.uid === $uid && auth.token.email_verified === true && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now)",
         "$characterId": {
-          ".write": "auth != null && auth.uid === $uid && auth.token.email_verified === true && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now) && ((!data.exists() && newData.exists()) || (data.exists() && !newData.exists()))",
+          ".write": "auth != null && auth.uid === $uid && auth.token.email_verified === true && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now) && ((!data.exists() && newData.exists()) || (data.exists() && !newData.exists()) || (data.exists() && newData.exists() && newData.child('uid').val() === data.child('uid').val() && newData.child('name').val() === data.child('name').val() && newData.child('serverId').val() === data.child('serverId').val() && newData.child('classType').val() === data.child('classType').val() && newData.child('lineage').val() === data.child('lineage').val() && newData.child('bodyType').val() === data.child('bodyType').val() && newData.child('hairStyle').val() === data.child('hairStyle').val() && newData.child('hairColor').val() === data.child('hairColor').val() && newData.child('faceStyle').val() === data.child('faceStyle').val() && newData.child('createdAt').val() === data.child('createdAt').val() && newData.child('x').isNumber() && newData.child('y').isNumber()))",
           ".validate": "newData.hasChildren(['uid', 'name', 'serverId', 'classType', 'lineage', 'bodyType', 'hairStyle', 'hairColor', 'faceStyle', 'createdAt'])",
           "uid": {
             ".validate": "newData.isString() && newData.val() === $uid"
@@ -154,8 +154,64 @@
           "createdAt": {
             ".validate": "newData.isNumber() && newData.val() <= now"
           },
+          "x": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3200"
+          },
+          "y": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 2400"
+          },
+          "updatedAt": {
+            ".validate": "newData.isNumber() && newData.val() <= now"
+          },
           "$other": {
             ".validate": "false"
+          }
+        }
+      }
+    },
+    "worldPlayers": {
+      "$serverId": {
+        ".read": "auth != null && auth.token.email_verified === true && data.child(auth.uid).exists() && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now)",
+        "$uid": {
+          "$sessionId": {
+            ".write": "auth != null && auth.uid === $uid && auth.token.email_verified === true && (!root.child('userAccess').child(auth.uid).child('banUntil').exists() || root.child('userAccess').child(auth.uid).child('banUntil').val() <= now)",
+            ".validate": "newData.hasChildren(['characterId', 'name', 'classType', 'lineage', 'bodyType', 'hairStyle', 'hairColor', 'faceStyle', 'x', 'y', 'updatedAt']) && newData.child('characterId').isString() && root.child('characters').child(auth.uid).child(newData.child('characterId').val()).child('serverId').val() === $serverId && root.child('characters').child(auth.uid).child(newData.child('characterId').val()).child('name').val() === newData.child('name').val() && root.child('characters').child(auth.uid).child(newData.child('characterId').val()).child('classType').val() === newData.child('classType').val() && root.child('characters').child(auth.uid).child(newData.child('characterId').val()).child('lineage').val() === newData.child('lineage').val() && root.child('characters').child(auth.uid).child(newData.child('characterId').val()).child('bodyType').val() === newData.child('bodyType').val() && root.child('characters').child(auth.uid).child(newData.child('characterId').val()).child('hairStyle').val() === newData.child('hairStyle').val() && root.child('characters').child(auth.uid).child(newData.child('characterId').val()).child('hairColor').val() === newData.child('hairColor').val() && root.child('characters').child(auth.uid).child(newData.child('characterId').val()).child('faceStyle').val() === newData.child('faceStyle').val()",
+            "characterId": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{1,128}$/)"
+            },
+            "name": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 24"
+            },
+            "classType": {
+              ".validate": "newData.isString() && (newData.val() === 'vanguard' || newData.val() === 'striker' || newData.val() === 'arcanist' || newData.val() === 'warden')"
+            },
+            "lineage": {
+              ".validate": "newData.isString() && (newData.val() === 'aetherborn' || newData.val() === 'stoneborn' || newData.val() === 'wildkin')"
+            },
+            "bodyType": {
+              ".validate": "newData.isString() && (newData.val() === 'masculine' || newData.val() === 'feminine')"
+            },
+            "hairStyle": {
+              ".validate": "newData.isString() && (newData.val() === 'crown' || newData.val() === 'spire' || newData.val() === 'nomad' || newData.val() === 'aegis')"
+            },
+            "hairColor": {
+              ".validate": "newData.isString() && (newData.val() === 'silver' || newData.val() === 'gold' || newData.val() === 'ember' || newData.val() === 'violet')"
+            },
+            "faceStyle": {
+              ".validate": "newData.isString() && (newData.val() === 'calm' || newData.val() === 'focused' || newData.val() === 'battle-ready')"
+            },
+            "x": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3200"
+            },
+            "y": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 2400"
+            },
+            "updatedAt": {
+              ".validate": "newData.isNumber() && newData.val() <= now"
+            },
+            "$other": {
+              ".validate": "false"
+            }
           }
         }
       }

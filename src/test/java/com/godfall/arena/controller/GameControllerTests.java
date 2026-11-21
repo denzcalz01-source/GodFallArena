@@ -48,7 +48,8 @@ class GameControllerTests {
 						backendJwtService,
 						new ClassPathResource("templates/game.html"),
 						new ClassPathResource("templates/character-creation.html"),
-						new ClassPathResource("templates/characters.html")))
+						new ClassPathResource("templates/characters.html"),
+						new ClassPathResource("templates/play.html")))
 				.build();
 	}
 
@@ -106,7 +107,27 @@ class GameControllerTests {
 				.andExpect(status().isOk())
 				.andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
 				.andExpect(content().string(containsString("Character roster")))
+				.andExpect(content().string(containsString("/play?characterId=")))
 				.andExpect(content().string(containsString("Delete character")));
+	}
+
+	@Test
+	void gameplayRequiresAnAuthenticatedSession() throws Exception {
+		mockMvc.perform(get("/play"))
+				.andExpect(status().isSeeOther())
+				.andExpect(header().string("Location", "/?reason=session-ended"));
+	}
+
+	@Test
+	void servesGameplayPrototypeForValidSession() throws Exception {
+		String token = backendJwtService.issueUserToken("firebase-user-123");
+
+		mockMvc.perform(get("/play?characterId=character-123")
+						.cookie(new Cookie(BackendJwtService.COOKIE_NAME, token)))
+				.andExpect(status().isOk())
+				.andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
+				.andExpect(content().string(containsString("world-canvas")))
+				.andExpect(content().string(containsString("worldPlayers")));
 	}
 
 	@Test
@@ -235,7 +256,9 @@ class GameControllerTests {
 						"crown",
 						"silver",
 						"calm",
-						1_800_000_000_000L)));
+						1_800_000_000_000L,
+						1234.5,
+						876.25)));
 		MockMvc api = MockMvcBuilders.standaloneSetup(
 				new AuthController(firebaseRestService, backendJwtService, false))
 				.build();
@@ -317,6 +340,8 @@ class GameControllerTests {
 						"crown",
 						"silver",
 						"calm",
+						null,
+						null,
 						null));
 		MockMvc api = MockMvcBuilders.standaloneSetup(
 				new AuthController(firebaseRestService, backendJwtService, false))
@@ -382,7 +407,9 @@ class GameControllerTests {
 						"crown",
 						"silver",
 						"calm",
-						1_800_000_000_000L)));
+						1_800_000_000_000L,
+						null,
+						null)));
 		MockMvc api = MockMvcBuilders.standaloneSetup(
 				new AuthController(firebaseRestService, backendJwtService, false))
 				.build();
@@ -393,7 +420,9 @@ class GameControllerTests {
 						.cookie(new Cookie(BackendJwtService.COOKIE_NAME, token)))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$[0].uid").value("firebase-user-123"))
-				.andExpect(jsonPath("$[0].name").value("Astra"));
+				.andExpect(jsonPath("$[0].name").value("Astra"))
+				.andExpect(jsonPath("$[0].x").value(1234.5))
+				.andExpect(jsonPath("$[0].y").value(876.25));
 		org.mockito.Mockito.verify(firebaseRestService)
 				.getCharacters("firebase-id-token", "firebase-user-123");
 	}
