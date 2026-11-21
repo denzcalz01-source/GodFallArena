@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: godfallarena
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    envVars:
+      - key: APP_JWT_SECRET
+        generateValue: true
+      - key: AUTH_COOKIE_SECURE
+        value: "true"
+      - key: FIREBASE_DATABASE_URL
+        value: https://godfallarena-default-rtdb.asia-southeast1.firebasedatabase.app
+      - key: FIREBASE_PROJECT_ID
+        value: godfallarena

@@ -1,6 +1,8 @@
 spring:
   application:
     name: godfallarena
+server:
+  port: ${PORT:8080}
 firebase:
   api-key: ${FIREBASE_API_KEY:AIzaSyBDZi--dGyxpAZAE30uA3EqhKM_tXzAwyc}
   database-url: ${FIREBASE_DATABASE_URL:https://godfallarena-default-rtdb.asia-southeast1.firebasedatabase.app}
