@@ -252,7 +252,157 @@
       .target-panel-footer { padding-top: 6px; color: #71879a; font-size: 0.42rem; }
       .target-panel-footer strong { color: #c7d7e5; font-size: 0.46rem; }
       @media (max-width: 700px) {
-        .target-panel { right: max(8px, env(safe-area-inset-right)); bottom: max(68px, calc(env(safe-area-inset-bottom) + 64px)); width: min(208px, 58vw); padding: 8px 9px; }
+        .game-hud {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          align-items: center;
+          justify-content: stretch;
+          gap: 5px;
+          padding: max(7px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left));
+        }
+        .player-panel { grid-column: 1; width: 100%; max-width: 100%; padding: 6px 8px; }
+        .player-name { max-width: 30vw; }
+        .online-count { grid-column: 2; justify-self: end; max-width: 40vw; padding: 6px 8px; font-size: 0.49rem; }
+        .hud-actions {
+          grid-column: 1 / -1;
+          display: flex;
+          width: 100%;
+          min-width: 0;
+          flex-wrap: nowrap;
+          justify-content: flex-start;
+          gap: 4px;
+          overflow-x: auto;
+          overflow-y: hidden;
+          padding: 0 0 2px;
+          scrollbar-width: none;
+        }
+        .hud-actions::-webkit-scrollbar { display: none; }
+        .hud-button { min-height: 30px; flex: 0 0 auto; padding: 0 8px; font-size: 0.47rem; }
+        .world-status {
+          top: max(108px, calc(env(safe-area-inset-top) + 98px));
+          left: 50%;
+          max-width: calc(100vw - 16px);
+          max-height: 40px;
+          box-sizing: border-box;
+          overflow: auto;
+          padding: 6px 8px;
+          font-size: 0.51rem;
+        }
+        .minimap-panel {
+          top: max(152px, calc(env(safe-area-inset-top) + 142px));
+          right: max(8px, env(safe-area-inset-right));
+          width: min(138px, 42vw);
+        }
+        .minimap-canvas { height: 68px; }
+        .minimap-footer { padding: 5px 6px; font-size: 0.44rem; }
+        .inventory-panel, .skills-panel {
+          top: max(108px, calc(env(safe-area-inset-top) + 98px));
+          right: auto;
+          left: 50%;
+          width: min(340px, calc(100vw - 16px));
+          max-height: calc(100dvh - 124px);
+          transform: translateX(-50%);
+        }
+        .skills-panel { width: min(360px, calc(100vw - 16px)); }
+        .character-status-panel {
+          left: max(8px, env(safe-area-inset-left));
+          bottom: max(132px, calc(env(safe-area-inset-bottom) + 124px));
+          width: min(250px, calc(100vw - 16px));
+          max-height: calc(100dvh - 250px);
+          overflow: auto;
+        }
+        .target-panel {
+          right: max(8px, env(safe-area-inset-right));
+          bottom: max(88px, calc(env(safe-area-inset-bottom) + 80px));
+          width: min(220px, calc(100vw - 16px));
+          padding: 8px 9px;
+        }
+        .action-bar {
+          right: max(8px, env(safe-area-inset-right));
+          bottom: max(8px, env(safe-area-inset-bottom));
+          left: auto;
+          max-width: calc(100vw - 108px);
+          gap: 2px;
+          padding: 3px;
+          transform: none;
+        }
+        .action-slot { width: clamp(28px, 8vw, 36px); height: 34px; }
+        .location-label { display: none; }
+      }
+      @media (max-width: 700px) and (max-height: 500px) {
+        .game-hud { padding-top: max(5px, env(safe-area-inset-top)); }
+        .minimap-panel { top: max(132px, calc(env(safe-area-inset-top) + 122px)); }
+        .minimap-canvas { height: 52px; }
+        .world-status { top: max(98px, calc(env(safe-area-inset-top) + 88px)); max-width: 54vw; }
+        .character-status-panel { bottom: max(88px, calc(env(safe-area-inset-bottom) + 80px)); max-height: calc(100dvh - 170px); }
+        .target-panel { bottom: max(58px, calc(env(safe-area-inset-bottom) + 52px)); }
+        .inventory-panel, .skills-panel { top: max(82px, calc(env(safe-area-inset-top) + 72px)); max-height: calc(100dvh - 94px); }
+      }
+      @media (pointer: coarse) and (min-width: 701px) and (max-height: 500px) {
+        .game-hud {
+          gap: 6px;
+          padding: max(7px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left));
+        }
+        .player-panel { gap: 5px; padding: 5px 7px; }
+        .player-mark { width: 28px; height: 28px; flex-basis: 28px; }
+        .player-name { max-width: 20vw; font-size: 0.63rem; }
+        .player-class { font-size: 0.47rem; }
+        .player-level { font-size: 0.46rem; }
+        .vital-bars { gap: 3px; margin-top: 4px; }
+        .vital-bar { height: 4px; }
+        .online-count { padding: 6px 8px; font-size: 0.48rem; }
+        .hud-actions { flex-wrap: nowrap; gap: 3px; max-width: calc(100vw - 260px); overflow-x: auto; }
+        .hud-actions::-webkit-scrollbar { display: none; }
+        .hud-button { min-height: 30px; flex: 0 0 auto; padding: 0 7px; font-size: 0.44rem; letter-spacing: 0.04em; }
+        .world-status {
+          top: max(78px, calc(env(safe-area-inset-top) + 72px));
+          right: auto;
+          left: max(8px, env(safe-area-inset-left));
+          width: min(280px, 32vw);
+          max-height: 40px;
+          box-sizing: border-box;
+          overflow: auto;
+          padding: 5px 8px;
+          font-size: 0.47rem;
+          line-height: 1.35;
+          text-align: left;
+          transform: none;
+        }
+        .minimap-panel {
+          top: max(52px, calc(env(safe-area-inset-top) + 46px));
+          right: max(8px, env(safe-area-inset-right));
+          width: clamp(100px, 13vw, 128px);
+        }
+        .minimap-canvas { height: clamp(42px, 14vh, 58px); }
+        .minimap-footer { padding: 4px 5px; font-size: 0.42rem; }
+        .inventory-panel, .skills-panel {
+          top: max(52px, calc(env(safe-area-inset-top) + 46px));
+          max-height: calc(100dvh - 68px);
+        }
+        .inventory-panel { width: min(300px, 38vw); }
+        .skills-panel { width: min(320px, 40vw); }
+        .character-status-panel {
+          bottom: max(128px, calc(env(safe-area-inset-bottom) + 122px));
+          width: min(240px, 27vw);
+          max-height: calc(100dvh - 200px);
+          overflow: auto;
+        }
+        .target-panel {
+          right: max(8px, env(safe-area-inset-right));
+          bottom: max(58px, calc(env(safe-area-inset-bottom) + 52px));
+          width: min(216px, 26vw);
+          padding: 7px 8px;
+        }
+        .action-bar { bottom: max(6px, env(safe-area-inset-bottom)); gap: 3px; padding: 3px; }
+        .action-slot { width: 34px; height: 34px; }
+        .controls { background: transparent; border-color: transparent; box-shadow: none; }
+        .controls::before {
+          inset: 12px;
+          background: radial-gradient(circle, rgba(42, 69, 61, 0.66), rgba(8, 20, 20, 0.48) 72%);
+          box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.28), 0 8px 26px rgba(0, 0, 0, 0.22);
+        }
+        .joystick-thumb { width: 34px; height: 34px; }
+        .location-label { display: none; }
       }
     </style>
   </head>
@@ -556,6 +706,7 @@
       const avatarModels = new Map();
 
       const mobileControls = window.matchMedia("(pointer: coarse)").matches;
+      const canvasPixelRatio = Math.min(window.devicePixelRatio || 1, mobileControls ? 1 : 1.5);
       const compactLayout = mobileControls || window.matchMedia("(max-width: 700px)").matches;
       gameShell.dataset.inventoryOpen = String(!compactLayout);
       gameShell.dataset.characterOpen = String(!compactLayout);
@@ -600,7 +751,7 @@
             antialias: true,
             powerPreference: "low-power",
           });
-          avatarRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, mobileControls ? 1 : 1.5));
+          avatarRenderer.setPixelRatio(canvasPixelRatio);
           avatarRenderer.setClearColor(0x000000, 0);
           avatarScene = new THREE.Scene();
           avatarScene.add(new THREE.HemisphereLight(0xffecd0, 0x263b45, 2.2));
@@ -723,15 +874,29 @@
         targetHealthText.textContent = `${Math.max(0, Math.ceil(target.health))} / ${target.maxHealth} HP`;
       }
 
+      function getCameraView(width, height) {
+        const preferredScale = mobileControls
+          ? Math.min(1, width / 1280, height / 720)
+          : 1;
+        const worldFitScale = Math.max(width / world.width, height / world.height);
+        const scale = Math.max(preferredScale, worldFitScale);
+        const halfViewWidth = width / (2 * scale);
+        const halfViewHeight = height / (2 * scale);
+        return {
+          scale,
+          x: Math.max(halfViewWidth, Math.min(world.width - halfViewWidth, localPlayer.x)),
+          y: Math.max(halfViewHeight, Math.min(world.height - halfViewHeight, localPlayer.y)),
+        };
+      }
+
       function selectMonsterAtPointer(event) {
         const bounds = canvas.getBoundingClientRect();
         const width = canvas.clientWidth;
         const height = canvas.clientHeight;
-        const cameraX = Math.max(width / 2, Math.min(world.width - width / 2, localPlayer.x));
-        const cameraY = Math.max(height / 2, Math.min(world.height - height / 2, localPlayer.y));
-        const worldX = event.clientX - bounds.left - width / 2 + cameraX;
-        const worldY = event.clientY - bounds.top - height / 2 + cameraY;
-        const selectionRadius = mobileControls ? 58 : 40;
+        const camera = getCameraView(width, height);
+        const worldX = (event.clientX - bounds.left - width / 2) / camera.scale + camera.x;
+        const worldY = (event.clientY - bounds.top - height / 2) / camera.scale + camera.y;
+        const selectionRadius = (mobileControls ? 58 : 40) / camera.scale;
         const target = [...monsterStates.values()]
           .filter((monster) => monster.health > 0)
           .map((monster) => ({ monster, distance: Math.hypot(monster.x - worldX, monster.y - worldY) }))
@@ -1185,10 +1350,9 @@
 
       function resizeCanvas() {
         const bounds = canvas.getBoundingClientRect();
-        const scale = Math.min(window.devicePixelRatio || 1, mobileControls ? 1 : 1.5);
-        canvas.width = Math.max(1, Math.round(bounds.width * scale));
-        canvas.height = Math.max(1, Math.round(bounds.height * scale));
-        context.setTransform(scale, 0, 0, scale, 0, 0);
+        canvas.width = Math.max(1, Math.round(bounds.width * canvasPixelRatio));
+        canvas.height = Math.max(1, Math.round(bounds.height * canvasPixelRatio));
+        context.setTransform(canvasPixelRatio, 0, 0, canvasPixelRatio, 0, 0);
         if (avatarRenderer) avatarRenderer.setSize(bounds.width, bounds.height, false);
       }
 
@@ -1564,10 +1728,12 @@
         context.fillRect(monster.x - 17, monster.y - 37, 34, 3);
         context.fillStyle = "#8fd4aa";
         context.fillRect(monster.x - 17, monster.y - 37, 34 * Math.max(0, monster.health / monster.maxHealth), 3);
-        context.font = "700 9px Inter, Segoe UI, sans-serif";
-        context.textAlign = "center";
-        context.fillStyle = "#d9f0cf";
-        context.fillText(`${monster.name} · ${Math.ceil(monster.health)}`, monster.x, monster.y - 42);
+        if (!mobileControls) {
+          context.font = "700 9px Inter, Segoe UI, sans-serif";
+          context.textAlign = "center";
+          context.fillStyle = "#d9f0cf";
+          context.fillText(`${monster.name} · ${Math.ceil(monster.health)}`, monster.x, monster.y - 42);
+        }
       }
 
       function updateMonsterModels(time) {
@@ -2161,13 +2327,16 @@
           player.y += dy * interpolation;
         }
 
-        const cameraX = Math.max(width / 2, Math.min(world.width - width / 2, localPlayer.x));
-        const cameraY = Math.max(height / 2, Math.min(world.height - height / 2, localPlayer.y));
-        context.setTransform(window.devicePixelRatio ? Math.min(window.devicePixelRatio, 2) : 1, 0, 0, window.devicePixelRatio ? Math.min(window.devicePixelRatio, 2) : 1, 0, 0);
+        const camera = getCameraView(width, height);
+        const viewWidth = width / camera.scale;
+        const viewHeight = height / camera.scale;
+        context.setTransform(canvasPixelRatio, 0, 0, canvasPixelRatio, 0, 0);
         context.clearRect(0, 0, width, height);
         context.save();
-        context.translate(width / 2 - cameraX, height / 2 - cameraY);
-        drawWorld(cameraX, cameraY, width, height);
+        context.translate(width / 2, height / 2);
+        context.scale(camera.scale, camera.scale);
+        context.translate(-camera.x, -camera.y);
+        drawWorld(camera.x, camera.y, viewWidth, viewHeight);
         for (const monster of monsterStates.values()) drawMonster(monster, time);
         drawSkillEffects(time);
         if (avatarRenderer) {
@@ -2194,12 +2363,12 @@
         }
         context.restore();
         if (avatarRenderer) {
-          avatarCamera.left = -width / 2;
-          avatarCamera.right = width / 2;
-          avatarCamera.top = height / 2;
-          avatarCamera.bottom = -height / 2;
-          avatarCamera.position.set(cameraX, -cameraY, 1000);
-          avatarCamera.lookAt(cameraX, -cameraY, 0);
+          avatarCamera.left = -viewWidth / 2;
+          avatarCamera.right = viewWidth / 2;
+          avatarCamera.top = viewHeight / 2;
+          avatarCamera.bottom = -viewHeight / 2;
+          avatarCamera.position.set(camera.x, -camera.y, 1000);
+          avatarCamera.lookAt(camera.x, -camera.y, 0);
           avatarCamera.updateProjectionMatrix();
           avatarRenderer.render(avatarScene, avatarCamera);
         }
